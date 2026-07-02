@@ -9,38 +9,170 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTugasRouteImport } from './routes/app.tugas'
+import { Route as AppTahfidzRouteImport } from './routes/app.tahfidz'
+import { Route as AppResetPasswordRouteImport } from './routes/app.reset-password'
+import { Route as AppNilaiRouteImport } from './routes/app.nilai'
+import { Route as AppMoodRouteImport } from './routes/app.mood'
+import { Route as AppLoginRouteImport } from './routes/app.login'
+import { Route as AppForgotPasswordRouteImport } from './routes/app.forgot-password'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppAnakRouteImport } from './routes/app.anak'
 
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTugasRoute = AppTugasRouteImport.update({
+  id: '/tugas',
+  path: '/tugas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTahfidzRoute = AppTahfidzRouteImport.update({
+  id: '/tahfidz',
+  path: '/tahfidz',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppResetPasswordRoute = AppResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNilaiRoute = AppNilaiRouteImport.update({
+  id: '/nilai',
+  path: '/nilai',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMoodRoute = AppMoodRouteImport.update({
+  id: '/mood',
+  path: '/mood',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLoginRoute = AppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppForgotPasswordRoute = AppForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnakRoute = AppAnakRouteImport.update({
+  id: '/anak',
+  path: '/anak',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/anak': typeof AppAnakRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mood': typeof AppMoodRoute
+  '/app/nilai': typeof AppNilaiRoute
+  '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/tahfidz': typeof AppTahfidzRoute
+  '/app/tugas': typeof AppTugasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/anak': typeof AppAnakRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mood': typeof AppMoodRoute
+  '/app/nilai': typeof AppNilaiRoute
+  '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/tahfidz': typeof AppTahfidzRoute
+  '/app/tugas': typeof AppTugasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/anak': typeof AppAnakRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mood': typeof AppMoodRoute
+  '/app/nilai': typeof AppNilaiRoute
+  '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/tahfidz': typeof AppTahfidzRoute
+  '/app/tugas': typeof AppTugasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/app/anak'
+    | '/app/dashboard'
+    | '/app/forgot-password'
+    | '/app/login'
+    | '/app/mood'
+    | '/app/nilai'
+    | '/app/reset-password'
+    | '/app/tahfidz'
+    | '/app/tugas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/app'
+    | '/app/anak'
+    | '/app/dashboard'
+    | '/app/forgot-password'
+    | '/app/login'
+    | '/app/mood'
+    | '/app/nilai'
+    | '/app/reset-password'
+    | '/app/tahfidz'
+    | '/app/tugas'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/app/anak'
+    | '/app/dashboard'
+    | '/app/forgot-password'
+    | '/app/login'
+    | '/app/mood'
+    | '/app/nilai'
+    | '/app/reset-password'
+    | '/app/tahfidz'
+    | '/app/tugas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +180,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/tugas': {
+      id: '/app/tugas'
+      path: '/tugas'
+      fullPath: '/app/tugas'
+      preLoaderRoute: typeof AppTugasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tahfidz': {
+      id: '/app/tahfidz'
+      path: '/tahfidz'
+      fullPath: '/app/tahfidz'
+      preLoaderRoute: typeof AppTahfidzRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reset-password': {
+      id: '/app/reset-password'
+      path: '/reset-password'
+      fullPath: '/app/reset-password'
+      preLoaderRoute: typeof AppResetPasswordRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/nilai': {
+      id: '/app/nilai'
+      path: '/nilai'
+      fullPath: '/app/nilai'
+      preLoaderRoute: typeof AppNilaiRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mood': {
+      id: '/app/mood'
+      path: '/mood'
+      fullPath: '/app/mood'
+      preLoaderRoute: typeof AppMoodRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/login': {
+      id: '/app/login'
+      path: '/login'
+      fullPath: '/app/login'
+      preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/forgot-password': {
+      id: '/app/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/app/forgot-password'
+      preLoaderRoute: typeof AppForgotPasswordRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/anak': {
+      id: '/app/anak'
+      path: '/anak'
+      fullPath: '/app/anak'
+      preLoaderRoute: typeof AppAnakRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppAnakRoute: typeof AppAnakRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppForgotPasswordRoute: typeof AppForgotPasswordRoute
+  AppLoginRoute: typeof AppLoginRoute
+  AppMoodRoute: typeof AppMoodRoute
+  AppNilaiRoute: typeof AppNilaiRoute
+  AppResetPasswordRoute: typeof AppResetPasswordRoute
+  AppTahfidzRoute: typeof AppTahfidzRoute
+  AppTugasRoute: typeof AppTugasRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAnakRoute: AppAnakRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppForgotPasswordRoute: AppForgotPasswordRoute,
+  AppLoginRoute: AppLoginRoute,
+  AppMoodRoute: AppMoodRoute,
+  AppNilaiRoute: AppNilaiRoute,
+  AppResetPasswordRoute: AppResetPasswordRoute,
+  AppTahfidzRoute: AppTahfidzRoute,
+  AppTugasRoute: AppTugasRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
