@@ -32,6 +32,14 @@ import { Route as AppCatatanRouteImport } from './routes/app.catatan'
 import { Route as AppBantuanRouteImport } from './routes/app.bantuan'
 import { Route as AppAnakRouteImport } from './routes/app.anak'
 import { Route as AppSppIdRouteImport } from './routes/app.spp.$id'
+import { Route as AppAdminUsersRouteImport } from './routes/app.admin.users'
+import { Route as AppAdminTahunAjaranRouteImport } from './routes/app.admin.tahun-ajaran'
+import { Route as AppAdminSppRouteImport } from './routes/app.admin.spp'
+import { Route as AppAdminPengumumanRouteImport } from './routes/app.admin.pengumuman'
+import { Route as AppAdminPembayaranRouteImport } from './routes/app.admin.pembayaran'
+import { Route as AppAdminMapelRouteImport } from './routes/app.admin.mapel'
+import { Route as AppAdminKelasRouteImport } from './routes/app.admin.kelas'
+import { Route as AppAdminAuditLogRouteImport } from './routes/app.admin.audit-log'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -148,6 +156,46 @@ const AppSppIdRoute = AppSppIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppSppRoute,
 } as any)
+const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminTahunAjaranRoute = AppAdminTahunAjaranRouteImport.update({
+  id: '/admin/tahun-ajaran',
+  path: '/admin/tahun-ajaran',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminSppRoute = AppAdminSppRouteImport.update({
+  id: '/admin/spp',
+  path: '/admin/spp',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminPengumumanRoute = AppAdminPengumumanRouteImport.update({
+  id: '/admin/pengumuman',
+  path: '/admin/pengumuman',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminPembayaranRoute = AppAdminPembayaranRouteImport.update({
+  id: '/admin/pembayaran',
+  path: '/admin/pembayaran',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminMapelRoute = AppAdminMapelRouteImport.update({
+  id: '/admin/mapel',
+  path: '/admin/mapel',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminKelasRoute = AppAdminKelasRouteImport.update({
+  id: '/admin/kelas',
+  path: '/admin/kelas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminAuditLogRoute = AppAdminAuditLogRouteImport.update({
+  id: '/admin/audit-log',
+  path: '/admin/audit-log',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -172,6 +220,14 @@ export interface FileRoutesByFullPath {
   '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/admin/audit-log': typeof AppAdminAuditLogRoute
+  '/app/admin/kelas': typeof AppAdminKelasRoute
+  '/app/admin/mapel': typeof AppAdminMapelRoute
+  '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
+  '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/spp': typeof AppAdminSppRoute
+  '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
+  '/app/admin/users': typeof AppAdminUsersRoute
   '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRoutesByTo {
@@ -197,6 +253,14 @@ export interface FileRoutesByTo {
   '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/admin/audit-log': typeof AppAdminAuditLogRoute
+  '/app/admin/kelas': typeof AppAdminKelasRoute
+  '/app/admin/mapel': typeof AppAdminMapelRoute
+  '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
+  '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/spp': typeof AppAdminSppRoute
+  '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
+  '/app/admin/users': typeof AppAdminUsersRoute
   '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRoutesById {
@@ -223,6 +287,14 @@ export interface FileRoutesById {
   '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/admin/audit-log': typeof AppAdminAuditLogRoute
+  '/app/admin/kelas': typeof AppAdminKelasRoute
+  '/app/admin/mapel': typeof AppAdminMapelRoute
+  '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
+  '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/spp': typeof AppAdminSppRoute
+  '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
+  '/app/admin/users': typeof AppAdminUsersRoute
   '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRouteTypes {
@@ -250,6 +322,14 @@ export interface FileRouteTypes {
     | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/admin/audit-log'
+    | '/app/admin/kelas'
+    | '/app/admin/mapel'
+    | '/app/admin/pembayaran'
+    | '/app/admin/pengumuman'
+    | '/app/admin/spp'
+    | '/app/admin/tahun-ajaran'
+    | '/app/admin/users'
     | '/app/spp/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -275,6 +355,14 @@ export interface FileRouteTypes {
     | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/admin/audit-log'
+    | '/app/admin/kelas'
+    | '/app/admin/mapel'
+    | '/app/admin/pembayaran'
+    | '/app/admin/pengumuman'
+    | '/app/admin/spp'
+    | '/app/admin/tahun-ajaran'
+    | '/app/admin/users'
     | '/app/spp/$id'
   id:
     | '__root__'
@@ -300,6 +388,14 @@ export interface FileRouteTypes {
     | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/admin/audit-log'
+    | '/app/admin/kelas'
+    | '/app/admin/mapel'
+    | '/app/admin/pembayaran'
+    | '/app/admin/pengumuman'
+    | '/app/admin/spp'
+    | '/app/admin/tahun-ajaran'
+    | '/app/admin/users'
     | '/app/spp/$id'
   fileRoutesById: FileRoutesById
 }
@@ -471,6 +567,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSppIdRouteImport
       parentRoute: typeof AppSppRoute
     }
+    '/app/admin/users': {
+      id: '/app/admin/users'
+      path: '/admin/users'
+      fullPath: '/app/admin/users'
+      preLoaderRoute: typeof AppAdminUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/tahun-ajaran': {
+      id: '/app/admin/tahun-ajaran'
+      path: '/admin/tahun-ajaran'
+      fullPath: '/app/admin/tahun-ajaran'
+      preLoaderRoute: typeof AppAdminTahunAjaranRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/spp': {
+      id: '/app/admin/spp'
+      path: '/admin/spp'
+      fullPath: '/app/admin/spp'
+      preLoaderRoute: typeof AppAdminSppRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/pengumuman': {
+      id: '/app/admin/pengumuman'
+      path: '/admin/pengumuman'
+      fullPath: '/app/admin/pengumuman'
+      preLoaderRoute: typeof AppAdminPengumumanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/pembayaran': {
+      id: '/app/admin/pembayaran'
+      path: '/admin/pembayaran'
+      fullPath: '/app/admin/pembayaran'
+      preLoaderRoute: typeof AppAdminPembayaranRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/mapel': {
+      id: '/app/admin/mapel'
+      path: '/admin/mapel'
+      fullPath: '/app/admin/mapel'
+      preLoaderRoute: typeof AppAdminMapelRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/kelas': {
+      id: '/app/admin/kelas'
+      path: '/admin/kelas'
+      fullPath: '/app/admin/kelas'
+      preLoaderRoute: typeof AppAdminKelasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin/audit-log': {
+      id: '/app/admin/audit-log'
+      path: '/admin/audit-log'
+      fullPath: '/app/admin/audit-log'
+      preLoaderRoute: typeof AppAdminAuditLogRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -506,6 +658,14 @@ interface AppRouteChildren {
   AppSppRoute: typeof AppSppRouteWithChildren
   AppTahfidzRoute: typeof AppTahfidzRoute
   AppTugasRoute: typeof AppTugasRoute
+  AppAdminAuditLogRoute: typeof AppAdminAuditLogRoute
+  AppAdminKelasRoute: typeof AppAdminKelasRoute
+  AppAdminMapelRoute: typeof AppAdminMapelRoute
+  AppAdminPembayaranRoute: typeof AppAdminPembayaranRoute
+  AppAdminPengumumanRoute: typeof AppAdminPengumumanRoute
+  AppAdminSppRoute: typeof AppAdminSppRoute
+  AppAdminTahunAjaranRoute: typeof AppAdminTahunAjaranRoute
+  AppAdminUsersRoute: typeof AppAdminUsersRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -529,6 +689,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppSppRoute: AppSppRouteWithChildren,
   AppTahfidzRoute: AppTahfidzRoute,
   AppTugasRoute: AppTugasRoute,
+  AppAdminAuditLogRoute: AppAdminAuditLogRoute,
+  AppAdminKelasRoute: AppAdminKelasRoute,
+  AppAdminMapelRoute: AppAdminMapelRoute,
+  AppAdminPembayaranRoute: AppAdminPembayaranRoute,
+  AppAdminPengumumanRoute: AppAdminPengumumanRoute,
+  AppAdminSppRoute: AppAdminSppRoute,
+  AppAdminTahunAjaranRoute: AppAdminTahunAjaranRoute,
+  AppAdminUsersRoute: AppAdminUsersRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -540,3 +708,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
