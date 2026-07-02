@@ -13,13 +13,25 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTugasRouteImport } from './routes/app.tugas'
 import { Route as AppTahfidzRouteImport } from './routes/app.tahfidz'
+import { Route as AppSppRouteImport } from './routes/app.spp'
+import { Route as AppSiswaRouteImport } from './routes/app.siswa'
 import { Route as AppResetPasswordRouteImport } from './routes/app.reset-password'
+import { Route as AppProfilRouteImport } from './routes/app.profil'
+import { Route as AppPerilakuRouteImport } from './routes/app.perilaku'
+import { Route as AppPengaturanRouteImport } from './routes/app.pengaturan'
+import { Route as AppNotifikasiRouteImport } from './routes/app.notifikasi'
 import { Route as AppNilaiRouteImport } from './routes/app.nilai'
 import { Route as AppMoodRouteImport } from './routes/app.mood'
+import { Route as AppMateriRouteImport } from './routes/app.materi'
 import { Route as AppLoginRouteImport } from './routes/app.login'
+import { Route as AppLaporanRouteImport } from './routes/app.laporan'
+import { Route as AppKelasRouteImport } from './routes/app.kelas'
 import { Route as AppForgotPasswordRouteImport } from './routes/app.forgot-password'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppCatatanRouteImport } from './routes/app.catatan'
+import { Route as AppBantuanRouteImport } from './routes/app.bantuan'
 import { Route as AppAnakRouteImport } from './routes/app.anak'
+import { Route as AppSppIdRouteImport } from './routes/app.spp.$id'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -41,9 +53,39 @@ const AppTahfidzRoute = AppTahfidzRouteImport.update({
   path: '/tahfidz',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSppRoute = AppSppRouteImport.update({
+  id: '/spp',
+  path: '/spp',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSiswaRoute = AppSiswaRouteImport.update({
+  id: '/siswa',
+  path: '/siswa',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppResetPasswordRoute = AppResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfilRoute = AppProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerilakuRoute = AppPerilakuRouteImport.update({
+  id: '/perilaku',
+  path: '/perilaku',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPengaturanRoute = AppPengaturanRouteImport.update({
+  id: '/pengaturan',
+  path: '/pengaturan',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotifikasiRoute = AppNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNilaiRoute = AppNilaiRouteImport.update({
@@ -56,9 +98,24 @@ const AppMoodRoute = AppMoodRouteImport.update({
   path: '/mood',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMateriRoute = AppMateriRouteImport.update({
+  id: '/materi',
+  path: '/materi',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLoginRoute = AppLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLaporanRoute = AppLaporanRouteImport.update({
+  id: '/laporan',
+  path: '/laporan',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKelasRoute = AppKelasRouteImport.update({
+  id: '/kelas',
+  path: '/kelas',
   getParentRoute: () => AppRoute,
 } as any)
 const AppForgotPasswordRoute = AppForgotPasswordRouteImport.update({
@@ -71,51 +128,102 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCatatanRoute = AppCatatanRouteImport.update({
+  id: '/catatan',
+  path: '/catatan',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBantuanRoute = AppBantuanRouteImport.update({
+  id: '/bantuan',
+  path: '/bantuan',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAnakRoute = AppAnakRouteImport.update({
   id: '/anak',
   path: '/anak',
   getParentRoute: () => AppRoute,
+} as any)
+const AppSppIdRoute = AppSppIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppSppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/anak': typeof AppAnakRoute
+  '/app/bantuan': typeof AppBantuanRoute
+  '/app/catatan': typeof AppCatatanRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/kelas': typeof AppKelasRoute
+  '/app/laporan': typeof AppLaporanRoute
   '/app/login': typeof AppLoginRoute
+  '/app/materi': typeof AppMateriRoute
   '/app/mood': typeof AppMoodRoute
   '/app/nilai': typeof AppNilaiRoute
+  '/app/notifikasi': typeof AppNotifikasiRoute
+  '/app/pengaturan': typeof AppPengaturanRoute
+  '/app/perilaku': typeof AppPerilakuRoute
+  '/app/profil': typeof AppProfilRoute
   '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/siswa': typeof AppSiswaRoute
+  '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/anak': typeof AppAnakRoute
+  '/app/bantuan': typeof AppBantuanRoute
+  '/app/catatan': typeof AppCatatanRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/kelas': typeof AppKelasRoute
+  '/app/laporan': typeof AppLaporanRoute
   '/app/login': typeof AppLoginRoute
+  '/app/materi': typeof AppMateriRoute
   '/app/mood': typeof AppMoodRoute
   '/app/nilai': typeof AppNilaiRoute
+  '/app/notifikasi': typeof AppNotifikasiRoute
+  '/app/pengaturan': typeof AppPengaturanRoute
+  '/app/perilaku': typeof AppPerilakuRoute
+  '/app/profil': typeof AppProfilRoute
   '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/siswa': typeof AppSiswaRoute
+  '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/anak': typeof AppAnakRoute
+  '/app/bantuan': typeof AppBantuanRoute
+  '/app/catatan': typeof AppCatatanRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/forgot-password': typeof AppForgotPasswordRoute
+  '/app/kelas': typeof AppKelasRoute
+  '/app/laporan': typeof AppLaporanRoute
   '/app/login': typeof AppLoginRoute
+  '/app/materi': typeof AppMateriRoute
   '/app/mood': typeof AppMoodRoute
   '/app/nilai': typeof AppNilaiRoute
+  '/app/notifikasi': typeof AppNotifikasiRoute
+  '/app/pengaturan': typeof AppPengaturanRoute
+  '/app/perilaku': typeof AppPerilakuRoute
+  '/app/profil': typeof AppProfilRoute
   '/app/reset-password': typeof AppResetPasswordRoute
+  '/app/siswa': typeof AppSiswaRoute
+  '/app/spp': typeof AppSppRouteWithChildren
   '/app/tahfidz': typeof AppTahfidzRoute
   '/app/tugas': typeof AppTugasRoute
+  '/app/spp/$id': typeof AppSppIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,40 +231,76 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/anak'
+    | '/app/bantuan'
+    | '/app/catatan'
     | '/app/dashboard'
     | '/app/forgot-password'
+    | '/app/kelas'
+    | '/app/laporan'
     | '/app/login'
+    | '/app/materi'
     | '/app/mood'
     | '/app/nilai'
+    | '/app/notifikasi'
+    | '/app/pengaturan'
+    | '/app/perilaku'
+    | '/app/profil'
     | '/app/reset-password'
+    | '/app/siswa'
+    | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/spp/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
     | '/app/anak'
+    | '/app/bantuan'
+    | '/app/catatan'
     | '/app/dashboard'
     | '/app/forgot-password'
+    | '/app/kelas'
+    | '/app/laporan'
     | '/app/login'
+    | '/app/materi'
     | '/app/mood'
     | '/app/nilai'
+    | '/app/notifikasi'
+    | '/app/pengaturan'
+    | '/app/perilaku'
+    | '/app/profil'
     | '/app/reset-password'
+    | '/app/siswa'
+    | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/spp/$id'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/app/anak'
+    | '/app/bantuan'
+    | '/app/catatan'
     | '/app/dashboard'
     | '/app/forgot-password'
+    | '/app/kelas'
+    | '/app/laporan'
     | '/app/login'
+    | '/app/materi'
     | '/app/mood'
     | '/app/nilai'
+    | '/app/notifikasi'
+    | '/app/pengaturan'
+    | '/app/perilaku'
+    | '/app/profil'
     | '/app/reset-password'
+    | '/app/siswa'
+    | '/app/spp'
     | '/app/tahfidz'
     | '/app/tugas'
+    | '/app/spp/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -194,11 +338,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTahfidzRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/spp': {
+      id: '/app/spp'
+      path: '/spp'
+      fullPath: '/app/spp'
+      preLoaderRoute: typeof AppSppRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/siswa': {
+      id: '/app/siswa'
+      path: '/siswa'
+      fullPath: '/app/siswa'
+      preLoaderRoute: typeof AppSiswaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/reset-password': {
       id: '/app/reset-password'
       path: '/reset-password'
       fullPath: '/app/reset-password'
       preLoaderRoute: typeof AppResetPasswordRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profil': {
+      id: '/app/profil'
+      path: '/profil'
+      fullPath: '/app/profil'
+      preLoaderRoute: typeof AppProfilRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/perilaku': {
+      id: '/app/perilaku'
+      path: '/perilaku'
+      fullPath: '/app/perilaku'
+      preLoaderRoute: typeof AppPerilakuRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pengaturan': {
+      id: '/app/pengaturan'
+      path: '/pengaturan'
+      fullPath: '/app/pengaturan'
+      preLoaderRoute: typeof AppPengaturanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notifikasi': {
+      id: '/app/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/app/notifikasi'
+      preLoaderRoute: typeof AppNotifikasiRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/nilai': {
@@ -215,11 +401,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMoodRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/materi': {
+      id: '/app/materi'
+      path: '/materi'
+      fullPath: '/app/materi'
+      preLoaderRoute: typeof AppMateriRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/login': {
       id: '/app/login'
       path: '/login'
       fullPath: '/app/login'
       preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/laporan': {
+      id: '/app/laporan'
+      path: '/laporan'
+      fullPath: '/app/laporan'
+      preLoaderRoute: typeof AppLaporanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kelas': {
+      id: '/app/kelas'
+      path: '/kelas'
+      fullPath: '/app/kelas'
+      preLoaderRoute: typeof AppKelasRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/forgot-password': {
@@ -236,6 +443,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/catatan': {
+      id: '/app/catatan'
+      path: '/catatan'
+      fullPath: '/app/catatan'
+      preLoaderRoute: typeof AppCatatanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/bantuan': {
+      id: '/app/bantuan'
+      path: '/bantuan'
+      fullPath: '/app/bantuan'
+      preLoaderRoute: typeof AppBantuanRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/anak': {
       id: '/app/anak'
       path: '/anak'
@@ -243,29 +464,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnakRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/spp/$id': {
+      id: '/app/spp/$id'
+      path: '/$id'
+      fullPath: '/app/spp/$id'
+      preLoaderRoute: typeof AppSppIdRouteImport
+      parentRoute: typeof AppSppRoute
+    }
   }
 }
 
+interface AppSppRouteChildren {
+  AppSppIdRoute: typeof AppSppIdRoute
+}
+
+const AppSppRouteChildren: AppSppRouteChildren = {
+  AppSppIdRoute: AppSppIdRoute,
+}
+
+const AppSppRouteWithChildren =
+  AppSppRoute._addFileChildren(AppSppRouteChildren)
+
 interface AppRouteChildren {
   AppAnakRoute: typeof AppAnakRoute
+  AppBantuanRoute: typeof AppBantuanRoute
+  AppCatatanRoute: typeof AppCatatanRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppForgotPasswordRoute: typeof AppForgotPasswordRoute
+  AppKelasRoute: typeof AppKelasRoute
+  AppLaporanRoute: typeof AppLaporanRoute
   AppLoginRoute: typeof AppLoginRoute
+  AppMateriRoute: typeof AppMateriRoute
   AppMoodRoute: typeof AppMoodRoute
   AppNilaiRoute: typeof AppNilaiRoute
+  AppNotifikasiRoute: typeof AppNotifikasiRoute
+  AppPengaturanRoute: typeof AppPengaturanRoute
+  AppPerilakuRoute: typeof AppPerilakuRoute
+  AppProfilRoute: typeof AppProfilRoute
   AppResetPasswordRoute: typeof AppResetPasswordRoute
+  AppSiswaRoute: typeof AppSiswaRoute
+  AppSppRoute: typeof AppSppRouteWithChildren
   AppTahfidzRoute: typeof AppTahfidzRoute
   AppTugasRoute: typeof AppTugasRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAnakRoute: AppAnakRoute,
+  AppBantuanRoute: AppBantuanRoute,
+  AppCatatanRoute: AppCatatanRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppForgotPasswordRoute: AppForgotPasswordRoute,
+  AppKelasRoute: AppKelasRoute,
+  AppLaporanRoute: AppLaporanRoute,
   AppLoginRoute: AppLoginRoute,
+  AppMateriRoute: AppMateriRoute,
   AppMoodRoute: AppMoodRoute,
   AppNilaiRoute: AppNilaiRoute,
+  AppNotifikasiRoute: AppNotifikasiRoute,
+  AppPengaturanRoute: AppPengaturanRoute,
+  AppPerilakuRoute: AppPerilakuRoute,
+  AppProfilRoute: AppProfilRoute,
   AppResetPasswordRoute: AppResetPasswordRoute,
+  AppSiswaRoute: AppSiswaRoute,
+  AppSppRoute: AppSppRouteWithChildren,
   AppTahfidzRoute: AppTahfidzRoute,
   AppTugasRoute: AppTugasRoute,
 }
