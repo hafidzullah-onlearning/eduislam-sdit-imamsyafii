@@ -1,90 +1,145 @@
 
-# EduIslam Connect — Landing Page Plan
+# EduIslam Connect — Web App (UI-only, mock data)
 
-A single-page premium SaaS landing site in Bahasa Indonesia, styled like Stripe / Linear / Notion with modern Islamic branding. All 12 sections from the brief, fully responsive, mobile-first.
+Bangun aplikasi lengkap di atas landing page yang sudah ada. Semua halaman fungsional secara visual dengan mock data (localStorage), tanpa backend nyata dulu. Prioritas polish tertinggi: **Orang Tua**. Lovable Cloud diaktifkan di akhir fase agar siap migrasi ke data nyata tanpa refactor besar.
 
-## Design System (src/styles.css)
+## Prinsip
 
-Tokens (oklch equivalents of brief hexes):
-- `--background` #FFFFFF, `--surface-soft` #F8FAFC, `--surface-muted` #F5F7FA
-- `--primary` Deep Emerald #065F46, `--primary-foreground` white
-- `--secondary` Islamic Navy #1E3A8A
-- `--accent-gold` #D97706, `--accent-mint` #34D399
-- `--foreground` slate-900, `--muted-foreground` slate-500
-- Gradients: `--gradient-hero` (emerald → navy soft), `--gradient-gold` (gold → amber)
-- Shadows: `--shadow-soft`, `--shadow-elevation`, `--shadow-glow-emerald`
-- Radii: rounded-3xl / rounded-[32px] / rounded-[40px] across cards, CTAs, inputs
+- Semua route baru di bawah `/app/*`. Landing page `/` tidak disentuh.
+- Data mock dipusatkan di `src/mocks/*` + hook `useMockStore` (localStorage-backed) supaya CRUD terasa nyata.
+- Role disimpan di `localStorage` (`role: guru | ortu | admin`) + context `AuthProvider`. Route guard sederhana di layout `/app`.
+- Design tokens landing page dipakai ulang (Emerald, Navy, Cream, Plus Jakarta Sans). Tambah token dashboard: `--surface`, `--surface-muted`, `--border-soft`, `--success/--warning/--danger/--info`.
+- Setiap halaman punya: loading skeleton, empty state, error state, toast, confirm dialog.
 
-Typography: Plus Jakarta Sans (headings + body) loaded via `<link>` in `src/routes/__root.tsx`. Weights 400/500/600/700/800. Hero 72/42px, section 48/32px, body 18px @ 170% line-height.
+## Arsitektur Route
 
-## File Structure
+```text
+/app/login                    (pilih role: guru / ortu / admin)
+/app/forgot-password
+/app/reset-password
 
+/app/(layout dgn Sidebar+Topbar per role)
+  /app/dashboard              (variasi per role)
+  /app/notifikasi
+  /app/profil
+  /app/pengaturan
+  /app/bantuan
+
+  # ORANG TUA (prioritas 1)
+  /app/anak                   (list anak)
+  /app/anak/$anakId           (dashboard anak)
+  /app/anak/$anakId/tugas
+  /app/anak/$anakId/tahfidz
+  /app/anak/$anakId/nilai
+  /app/anak/$anakId/mood
+  /app/anak/$anakId/catatan
+  /app/spp                    (tagihan + riwayat)
+  /app/spp/$invoiceId         (detail + mock pembayaran VA/QRIS/e-wallet)
+
+  # GURU
+  /app/kelas
+  /app/siswa
+  /app/tugas                  (CRUD + upload dummy)
+  /app/materi
+  /app/tahfidz                (input surah/ayat + status)
+  /app/nilai                  (harian/UTS/UAS + publish/draft)
+  /app/mood                   (emoji per jam pelajaran + grafik)
+  /app/perilaku
+  /app/laporan
+
+  # ADMIN
+  /app/admin/users            (guru/ortu/siswa dlm tabs)
+  /app/admin/kelas
+  /app/admin/mapel
+  /app/admin/tahun-ajaran
+  /app/admin/spp              (master tarif)
+  /app/admin/pembayaran       (rekap + filter + export mock)
+  /app/admin/pengumuman
+  /app/admin/banner
+  /app/admin/audit-log
+  /app/admin/pengaturan
 ```
-src/routes/index.tsx              # Composes all sections, head() SEO
-src/routes/__root.tsx             # Add font <link> tags
-src/styles.css                    # Tokens + utility classes
-src/components/landing/
-  Navbar.tsx                      # Sticky w/ blur-on-scroll
-  Hero.tsx                        # Headline + dual visual (dashboard + mobile)
-  TrustBar.tsx
-  PainPoints.tsx                  # 3 problem cards
-  ValueProposition.tsx            # 4-feature grid
-  MoodSplit.tsx                   # School-vs-Home mood comparison
-  HowItWorks.tsx                  # 4-step timeline
-  MoodAnalyticsUSP.tsx            # Premium dark section, 3D emoji, chart
-  FinancialTransparency.tsx       # Dashboard mock + stats
-  Testimonials.tsx                # 3 cards
-  FAQ.tsx                         # Accordion (shadcn)
-  FinalCTA.tsx                    # Emerald background
-  Footer.tsx
-  StickyMobileCTA.tsx
-  visuals/
-    DashboardMock.tsx             # SVG/HTML mock — stats, SPP, mood chart, hafalan
-    MobileAppMock.tsx             # Phone frame w/ parent app
-    MoodChart.tsx                 # Recharts line/area
-    Mood3DEmoji.tsx               # Generated 3D emoji images
+
+Sidebar dirender berdasarkan role. Guard: kalau tidak ada session di localStorage → redirect ke `/app/login`. Kalau role tidak cocok dengan route → redirect ke `/app/dashboard`.
+
+## Design System Dashboard
+
+- Layout: sidebar collapsible (shadcn `Sidebar`), topbar berisi search global, notifikasi bell, avatar menu, dark mode toggle.
+- Cards: `rounded-2xl`, `shadow-soft`, border tipis, background `--surface`.
+- Data viz: `recharts` (sudah terpasang) untuk grafik mood, nilai, pendapatan.
+- Tables: shadcn `Table` + pagination, sorting, filter, search bar konsisten.
+- State: Empty state ilustratif (SVG minimal), skeleton per komponen, error dengan tombol retry.
+- Copywriting Indonesia hangat: "Halo, Ustadzah Aisyah 👋", "Belum ada tagihan bulan ini, alhamdulillah.", dll.
+
+## Modul Prioritas (Orang Tua — polish penuh)
+
+1. **Dashboard Anak** — ringkasan hari ini: tugas, mood, target tahfidz, SPP, notifikasi guru, timeline aktivitas.
+2. **Tugas Anak** — checklist, upload bukti (mock), komentar ke guru.
+3. **Mood Rumah** — pilih emoji + catatan; grafik mingguan sekolah vs rumah.
+4. **Tahfidz** — progress bar per juz, riwayat setoran, target.
+5. **Nilai & Rapor** — nilai per mapel, grafik trend, tombol Download PDF (mock).
+6. **SPP** — daftar tagihan (Lunas/Belum/Terlambat), detail invoice dengan pilihan metode pembayaran (VA, QRIS, e-wallet, kartu). Alur pembayaran: pilih metode → tampilkan instruksi mock → simulasi "Tandai Lunas" → receipt.
+7. **Notifikasi & Profil & Pengaturan**.
+
+## Modul Guru (lengkap, fungsional secara UI)
+
+Dashboard, Siswa, Tugas (CRUD lengkap dgn dialog form + Zod), Tahfidz, Nilai (draft/publish), Mood per jam pelajaran, Perilaku, Laporan.
+
+## Modul Admin (lengkap, fungsional secara UI)
+
+Master User (tabs guru/ortu/siswa), Kelas, Mapel, Tahun Ajaran, SPP tarif, Pembayaran (rekap + export mock CSV), Pengumuman, Banner, Audit Log, Pengaturan.
+
+## Detail Teknis
+
+- **Auth mock**: `AuthProvider` di `src/lib/auth/mock-auth.tsx`. Fungsi `signIn(role, remember)`, `signOut()`, `useAuth()`. Simpan ke `localStorage`.
+- **Mock store**: `src/mocks/db.ts` dengan seed data (3 anak, 2 kelas, tagihan SPP, mood 30 hari, nilai per mapel, tugas). Hook `useCollection('spp')` mengembalikan `{ items, add, update, remove }` yg sinkron ke localStorage + trigger re-render via `zustand` (add package).
+- **Forms**: `react-hook-form` + `zod` untuk semua CRUD.
+- **Notifikasi**: sonner toast + halaman `/app/notifikasi` (list mock).
+- **Global search**: cmdk (`Command`) berisi shortcut ke halaman + siswa.
+- **Dark mode**: `next-themes`-style via `class` di `<html>`, toggle di topbar.
+- **Payment mock**: komponen `PaymentMethodPicker` + `MockPaymentInstructions` untuk VA/QRIS/e-wallet/kartu. Tombol "Saya sudah bayar" → set status Lunas + generate receipt page yg bisa diprint.
+- **Responsive**: sidebar jadi drawer di mobile, tables → cards di <sm.
+- **Aksesibilitas**: fokus ring semantic, aria-label pada icon-only button, kontras WCAG AA.
+
+## Lovable Cloud
+
+Diaktifkan setelah UI selesai supaya user bisa langsung tambahkan real auth + persistence nanti. Untuk fase ini murni mock; tidak ada tabel dibuat. Payment ditunda (mock UI only).
+
+## Struktur Folder Baru
+
+```text
+src/
+  routes/app/...             # semua route app
+  components/app/
+    layout/{Sidebar,Topbar,AppShell}.tsx
+    common/{PageHeader,EmptyState,DataTable,StatCard,ConfirmDialog}.tsx
+    parent/... guru/... admin/...
+  lib/auth/mock-auth.tsx
+  lib/mock-store.ts
+  mocks/
+    seed.ts            # data awal
+    types.ts
+  hooks/use-collection.ts
 ```
 
-## Section Content (copy locked from brief)
+## Deliverable per Iterasi Chat Berikutnya
 
-1. **Navbar** — Logo, menu (Fitur, Solusi, Mood Analytics, Keuangan, FAQ), Portal Masuk (ghost), Konsultasi Gratis (gold CTA). Blur backdrop on scroll via IntersectionObserver / scroll listener.
-2. **Hero** — Headline "Modernisasi Sekolah Islam Tanpa Kehilangan Sentuhan Tarbiyah." + subheadline, dual CTA, microcopy, social proof line, dashboard mock + floating phone mock with soft glow.
-3. **Trust Bar** — Tagline + 5–6 placeholder institution logos (text badges in muted style).
-4. **Pain Points** — 3 large rounded-[32px] cards with premium Lucide icons in emerald circles.
-5. **Value Proposition** — 4-feature bento grid (Akademik, Hafalan Qur'an, Mood Analytics, Fintech SPP) — varying card sizes.
-6. **Mood Split** — Side-by-side "Mood Sekolah" vs "Mood Rumah" charts with connecting motif.
-7. **How It Works** — 4-step horizontal timeline with numbered nodes, flow: Admin → Guru → Orang Tua.
-8. **Mood Analytics USP** — Dark emerald/navy gradient background, "Fitur Eksklusif EduIslam" gold badge, interactive-style chart, 3D emoji row (Happy/Sleepy/Bored/Sad/Angry), insight callout.
-9. **Financial Transparency** — Payment dashboard mock + 3 metric tiles with animated counters.
-10. **Testimonials** — 3 cards: Kepala Sekolah, Guru, Orang Tua. Generated portrait avatars.
-11. **FAQ** — shadcn Accordion, 5 questions from brief.
-12. **Final CTA** — Full-bleed emerald section with gold primary button + secondary outline.
-13. **Footer** — Logo, nav, kontak (email/WhatsApp/alamat), social, copyright.
-14. **Sticky Mobile CTA** — Appears after hero scroll on mobile only.
+Karena scope sangat besar, saya akan mengirim 1 pesan build ini yang menghasilkan:
 
-## Assets (imagegen, saved to src/assets/)
+1. Auth mock + layout `/app` + sidebar per role + dashboard 3 role.
+2. **Semua** modul Orang Tua (polish penuh + payment mock).
+3. Modul Guru lengkap (CRUD fungsional).
+4. Modul Admin lengkap (CRUD + rekap pembayaran).
+5. Notifikasi, Profil, Pengaturan, Bantuan, Global Search, Dark Mode.
+6. Aktifkan Lovable Cloud di akhir (siap untuk fase real backend).
 
-- `hero-dashboard.png` — Dashboard UI screenshot illustration (premium, emerald/white)
-- `hero-mobile-app.png` — Parent mobile app mock (transparent)
-- `emoji-happy.png`, `emoji-sleepy.png`, `emoji-bored.png`, `emoji-sad.png`, `emoji-angry.png` — 3D rendered, Apple-style, transparent backgrounds
-- `testimonial-1/2/3.jpg` — Indonesian Muslim portraits (hijabi teacher, principal, parent)
-- `logo-eduislam.svg` — Wordmark with subtle book/crescent mark (or text component)
+Kalau kepanjangan untuk satu turn, saya potong di batas modul (parent selesai dulu, lalu guru, lalu admin) tanpa meninggalkan link mati.
 
-## Technical Details
+## Yang TIDAK termasuk
 
-- TanStack Start: extend `src/routes/index.tsx` `head()` with full SEO (title <60ch, meta desc <160ch, OG, Twitter, JSON-LD Organization + SoftwareApplication).
-- Charts: install `recharts` via `bun add recharts`.
-- Animations: framer-motion (already common) — install if missing. Scroll-reveal via `whileInView`, animated counters with motion `useMotionValue` + `useTransform`.
-- Accordion/FAQ uses existing shadcn `accordion.tsx`.
-- All colors via tokens — no hardcoded hex in components.
-- Lazy load below-fold images with `loading="lazy"`.
-- Single H1 (hero), semantic `<section>` with aria-labels.
-- Mobile-first responsive: grid → flex breakpoints at sm/md/lg, `min-w-0` + `shrink-0` for header rows.
+- Backend nyata, RLS, migration (menunggu fase berikutnya setelah Cloud aktif).
+- Integrasi payment gateway nyata.
+- Email transaksional.
+- Kirim notifikasi push.
 
-## Out of Scope
-
-- Backend / auth / Cloud — pure marketing page.
-- Real login portal — "Portal Masuk" CTA links to `#` placeholder.
-- Form submission — Konsultasi Gratis CTA scrolls to final CTA / opens mailto.
-
-Approve and I'll build.
+Setujui untuk mulai build?
