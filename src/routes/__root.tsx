@@ -8,9 +8,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth/mock-auth";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -37,9 +38,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -77,18 +75,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SDITIS - EduIslam" },
+      { title: "EduIslam Connect" },
       { name: "description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "SDITIS - EduIslam" },
+      { property: "og:title", content: "EduIslam Connect" },
       { property: "og:description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "SDITIS - EduIslam" },
+      { name: "twitter:title", content: "EduIslam Connect" },
       { name: "twitter:description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4385c558-ef6e-4e06-9091-cdad880fab14/id-preview-bc88659a--f481d240-2104-45b9-b136-03d6243a03e3.lovable.app-1782439821808.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4385c558-ef6e-4e06-9091-cdad880fab14/id-preview-bc88659a--f481d240-2104-45b9-b136-03d6243a03e3.lovable.app-1782439821808.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -128,8 +122,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

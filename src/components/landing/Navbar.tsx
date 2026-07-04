@@ -52,12 +52,12 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <a
-            href="#portal"
+          <Link
+            to="/app/login"
             className="rounded-full px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-surface-soft"
           >
             Portal Masuk
-          </a>
+          </Link>
           <a
             href="#cta"
             className="rounded-full bg-gradient-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-glow-gold transition hover:scale-[1.02]"
@@ -89,12 +89,12 @@ export function Navbar() {
               </a>
             ))}
             <div className="mt-2 flex gap-2">
-              <a
-                href="#portal"
+              <Link
+                to="/app/login"
                 className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-semibold"
               >
                 Portal Masuk
-              </a>
+              </Link>
               <a
                 href="#cta"
                 className="flex-1 rounded-2xl bg-gradient-gold px-4 py-3 text-center text-sm font-semibold text-gold-foreground"
