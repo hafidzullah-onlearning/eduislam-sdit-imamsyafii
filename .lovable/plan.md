@@ -1,145 +1,74 @@
+# Migrasi ke Lovable Cloud — Backend Nyata
 
-# EduIslam Connect — Web App (UI-only, mock data)
+Scope-nya besar (30+ modul, 3 role). Rencananya bertahap dalam beberapa turn agar tiap fase bisa diverifikasi build & jalan. Turn ini fokus **Fase 1 & 2** (fondasi + Orang Tua end-to-end). Fase Guru & Admin menyusul di turn berikutnya.
 
-Bangun aplikasi lengkap di atas landing page yang sudah ada. Semua halaman fungsional secara visual dengan mock data (localStorage), tanpa backend nyata dulu. Prioritas polish tertinggi: **Orang Tua**. Lovable Cloud diaktifkan di akhir fase agar siap migrasi ke data nyata tanpa refactor besar.
+## Fase 1 — Fondasi Cloud & Auth
 
-## Prinsip
+1. Aktifkan **Lovable Cloud** (Supabase terkelola).
+2. **Auth nyata**: email/password + Google (via `lovable.auth.signInWithOAuth`). Ganti `mock-auth.tsx` → wrapper Supabase (`useAuth` API tetap sama supaya komponen tidak refactor besar).
+3. Route `/auth` publik + halaman `/reset-password`. Layout `_authenticated` (integration-managed) menggantikan guard manual di `src/routes/app.tsx`.
+4. Attach bearer middleware di `src/start.ts`.
 
-- Semua route baru di bawah `/app/*`. Landing page `/` tidak disentuh.
-- Data mock dipusatkan di `src/mocks/*` + hook `useMockStore` (localStorage-backed) supaya CRUD terasa nyata.
-- Role disimpan di `localStorage` (`role: guru | ortu | admin`) + context `AuthProvider`. Route guard sederhana di layout `/app`.
-- Design tokens landing page dipakai ulang (Emerald, Navy, Cream, Plus Jakarta Sans). Tambah token dashboard: `--surface`, `--surface-muted`, `--border-soft`, `--success/--warning/--danger/--info`.
-- Setiap halaman punya: loading skeleton, empty state, error state, toast, confirm dialog.
+## Fase 2 — Skema Database + RLS
 
-## Arsitektur Route
-
-```text
-/app/login                    (pilih role: guru / ortu / admin)
-/app/forgot-password
-/app/reset-password
-
-/app/(layout dgn Sidebar+Topbar per role)
-  /app/dashboard              (variasi per role)
-  /app/notifikasi
-  /app/profil
-  /app/pengaturan
-  /app/bantuan
-
-  # ORANG TUA (prioritas 1)
-  /app/anak                   (list anak)
-  /app/anak/$anakId           (dashboard anak)
-  /app/anak/$anakId/tugas
-  /app/anak/$anakId/tahfidz
-  /app/anak/$anakId/nilai
-  /app/anak/$anakId/mood
-  /app/anak/$anakId/catatan
-  /app/spp                    (tagihan + riwayat)
-  /app/spp/$invoiceId         (detail + mock pembayaran VA/QRIS/e-wallet)
-
-  # GURU
-  /app/kelas
-  /app/siswa
-  /app/tugas                  (CRUD + upload dummy)
-  /app/materi
-  /app/tahfidz                (input surah/ayat + status)
-  /app/nilai                  (harian/UTS/UAS + publish/draft)
-  /app/mood                   (emoji per jam pelajaran + grafik)
-  /app/perilaku
-  /app/laporan
-
-  # ADMIN
-  /app/admin/users            (guru/ortu/siswa dlm tabs)
-  /app/admin/kelas
-  /app/admin/mapel
-  /app/admin/tahun-ajaran
-  /app/admin/spp              (master tarif)
-  /app/admin/pembayaran       (rekap + filter + export mock)
-  /app/admin/pengumuman
-  /app/admin/banner
-  /app/admin/audit-log
-  /app/admin/pengaturan
-```
-
-Sidebar dirender berdasarkan role. Guard: kalau tidak ada session di localStorage → redirect ke `/app/login`. Kalau role tidak cocok dengan route → redirect ke `/app/dashboard`.
-
-## Design System Dashboard
-
-- Layout: sidebar collapsible (shadcn `Sidebar`), topbar berisi search global, notifikasi bell, avatar menu, dark mode toggle.
-- Cards: `rounded-2xl`, `shadow-soft`, border tipis, background `--surface`.
-- Data viz: `recharts` (sudah terpasang) untuk grafik mood, nilai, pendapatan.
-- Tables: shadcn `Table` + pagination, sorting, filter, search bar konsisten.
-- State: Empty state ilustratif (SVG minimal), skeleton per komponen, error dengan tombol retry.
-- Copywriting Indonesia hangat: "Halo, Ustadzah Aisyah 👋", "Belum ada tagihan bulan ini, alhamdulillah.", dll.
-
-## Modul Prioritas (Orang Tua — polish penuh)
-
-1. **Dashboard Anak** — ringkasan hari ini: tugas, mood, target tahfidz, SPP, notifikasi guru, timeline aktivitas.
-2. **Tugas Anak** — checklist, upload bukti (mock), komentar ke guru.
-3. **Mood Rumah** — pilih emoji + catatan; grafik mingguan sekolah vs rumah.
-4. **Tahfidz** — progress bar per juz, riwayat setoran, target.
-5. **Nilai & Rapor** — nilai per mapel, grafik trend, tombol Download PDF (mock).
-6. **SPP** — daftar tagihan (Lunas/Belum/Terlambat), detail invoice dengan pilihan metode pembayaran (VA, QRIS, e-wallet, kartu). Alur pembayaran: pilih metode → tampilkan instruksi mock → simulasi "Tandai Lunas" → receipt.
-7. **Notifikasi & Profil & Pengaturan**.
-
-## Modul Guru (lengkap, fungsional secara UI)
-
-Dashboard, Siswa, Tugas (CRUD lengkap dgn dialog form + Zod), Tahfidz, Nilai (draft/publish), Mood per jam pelajaran, Perilaku, Laporan.
-
-## Modul Admin (lengkap, fungsional secara UI)
-
-Master User (tabs guru/ortu/siswa), Kelas, Mapel, Tahun Ajaran, SPP tarif, Pembayaran (rekap + export mock CSV), Pengumuman, Banner, Audit Log, Pengaturan.
-
-## Detail Teknis
-
-- **Auth mock**: `AuthProvider` di `src/lib/auth/mock-auth.tsx`. Fungsi `signIn(role, remember)`, `signOut()`, `useAuth()`. Simpan ke `localStorage`.
-- **Mock store**: `src/mocks/db.ts` dengan seed data (3 anak, 2 kelas, tagihan SPP, mood 30 hari, nilai per mapel, tugas). Hook `useCollection('spp')` mengembalikan `{ items, add, update, remove }` yg sinkron ke localStorage + trigger re-render via `zustand` (add package).
-- **Forms**: `react-hook-form` + `zod` untuk semua CRUD.
-- **Notifikasi**: sonner toast + halaman `/app/notifikasi` (list mock).
-- **Global search**: cmdk (`Command`) berisi shortcut ke halaman + siswa.
-- **Dark mode**: `next-themes`-style via `class` di `<html>`, toggle di topbar.
-- **Payment mock**: komponen `PaymentMethodPicker` + `MockPaymentInstructions` untuk VA/QRIS/e-wallet/kartu. Tombol "Saya sudah bayar" → set status Lunas + generate receipt page yg bisa diprint.
-- **Responsive**: sidebar jadi drawer di mobile, tables → cards di <sm.
-- **Aksesibilitas**: fokus ring semantic, aria-label pada icon-only button, kontras WCAG AA.
-
-## Lovable Cloud
-
-Diaktifkan setelah UI selesai supaya user bisa langsung tambahkan real auth + persistence nanti. Untuk fase ini murni mock; tidak ada tabel dibuat. Payment ditunda (mock UI only).
-
-## Struktur Folder Baru
+Migration tunggal berisi seluruh skema inti (nama disesuaikan dari `src/mocks/types.ts`):
 
 ```text
-src/
-  routes/app/...             # semua route app
-  components/app/
-    layout/{Sidebar,Topbar,AppShell}.tsx
-    common/{PageHeader,EmptyState,DataTable,StatCard,ConfirmDialog}.tsx
-    parent/... guru/... admin/...
-  lib/auth/mock-auth.tsx
-  lib/mock-store.ts
-  mocks/
-    seed.ts            # data awal
-    types.ts
-  hooks/use-collection.ts
+profiles (id=auth.users, nama, avatar_url, phone)
+app_role enum: admin | guru | ortu
+user_roles (user_id, role) + has_role() SECURITY DEFINER
+tahun_ajaran, mapel, kelas (wali_kelas_id → profiles)
+siswa (kelas_id, orang_tua_id → profiles, nis, nama, jk, tgl_lahir)
+tugas, tugas_submission
+tahfidz_setoran
+nilai (status draft|published)
+mood_entry (source: sekolah|rumah, jam_ke)
+perilaku, catatan_guru
+spp_tarif, spp_invoice, spp_pembayaran (mock provider)
+pengumuman, notifikasi, audit_log
+storage bucket: `uploads` (submissions), `avatars` (public)
 ```
 
-## Deliverable per Iterasi Chat Berikutnya
+**RLS** (setiap tabel):
+- Ortu: SELECT anak-nya sendiri (via `siswa.orang_tua_id = auth.uid()`) & data turunannya.
+- Guru: SELECT/INSERT/UPDATE untuk siswa di kelas yang dia wali/ajar.
+- Admin: full via `has_role(auth.uid(),'admin')`.
+- `GRANT` sesuai konvensi (authenticated + service_role; anon hanya untuk pengumuman publik bila ada).
 
-Karena scope sangat besar, saya akan mengirim 1 pesan build ini yang menghasilkan:
+Trigger `handle_new_user()` untuk auto-buat `profiles`. Seed minimal (tahun ajaran aktif, mapel dasar, 1 admin dari user pertama) via migration.
 
-1. Auth mock + layout `/app` + sidebar per role + dashboard 3 role.
-2. **Semua** modul Orang Tua (polish penuh + payment mock).
-3. Modul Guru lengkap (CRUD fungsional).
-4. Modul Admin lengkap (CRUD + rekap pembayaran).
-5. Notifikasi, Profil, Pengaturan, Bantuan, Global Search, Dark Mode.
-6. Aktifkan Lovable Cloud di akhir (siap untuk fase real backend).
+## Fase 3 — Data Layer
 
-Kalau kepanjangan untuk satu turn, saya potong di batas modul (parent selesai dulu, lalu guru, lalu admin) tanpa meninggalkan link mati.
+- Ganti `useDB` (zustand+localStorage) → **TanStack Query hooks** per resource: `useSiswa`, `useTugas`, `useSpp`, dll. File `src/lib/api/*.ts` berisi query & mutation Supabase client.
+- Loader pattern canonical (`ensureQueryData` + `useSuspenseQuery`) untuk halaman berat.
+- Server functions (`createServerFn` + `requireSupabaseAuth`) hanya untuk operasi butuh service role (mis. admin reset password, export CSV pembayaran).
 
-## Yang TIDAK termasuk
+## Fase 4 — Migrasi Halaman Orang Tua (prioritas)
 
-- Backend nyata, RLS, migration (menunggu fase berikutnya setelah Cloud aktif).
-- Integrasi payment gateway nyata.
-- Email transaksional.
-- Kirim notifikasi push.
+Route parent (dashboard, anak, tugas, tahfidz, nilai, mood, catatan, spp list & detail, notifikasi, profil) diarahkan ke hooks nyata. Upload bukti tugas → Supabase Storage. Pembayaran tetap **mock** (tandai lunas menulis ke `spp_pembayaran` real).
 
-Setujui untuk mulai build?
+## Fase 5 (turn berikutnya) — Guru & Admin
+
+Setelah Fase 1-4 stabil: migrasi modul Guru (CRUD tugas/nilai/tahfidz/mood/perilaku/laporan) dan Admin (users via Auth Admin API di server fn, master data, rekap pembayaran, pengumuman, audit-log).
+
+## Yang dipertahankan
+
+- Design system, layout, semua komponen UI, routing structure tidak berubah.
+- `AuthProvider` API (`useAuth().user/session/signIn/signOut`) tetap sama → minim refactor komponen.
+- `Reset Data Demo` diganti jadi "Sign out" (mock reset tidak relevan lagi).
+
+## Yang dibuang
+
+- `src/lib/mock-store.ts`, `src/mocks/seed.ts` (types dipertahankan sebagai referensi kolom).
+- Guard manual di `src/routes/app.tsx` → pindah ke `_authenticated` layout.
+
+## Detail Teknis Ringkas
+
+- Google OAuth wajib panggil `supabase--configure_social_auth` di turn yang sama.
+- Semua `.functions.ts` yang perlu `supabaseAdmin` → dynamic import di dalam handler.
+- Public route (landing `/`) tidak disentuh.
+- Setiap route berloader dapat `errorComponent` + `notFoundComponent`.
+
+## Konfirmasi sebelum mulai
+
+Turn ini akan cukup besar. Setuju eksekusi **Fase 1-4** (fondasi + Orang Tua) dalam satu build, lalu Guru & Admin di turn terpisah?
