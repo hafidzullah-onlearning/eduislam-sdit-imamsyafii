@@ -37,7 +37,7 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | null>(null);
 const ACTIVE_SISWA_KEY = "eduislam-active-siswa";
 
-async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | null; activeSiswaId?: string }> {
+async function loadProfileAndRole(userId: string, authEmail?: string): Promise<{ user: AppUser | null; activeSiswaId?: string }> {
   const [{ data: profile }, { data: roles }, { data: siswa }] = await Promise.all([
     supabase.from("profiles").select("id, nama, email, phone, avatar_url").eq("id", userId).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", userId),
@@ -49,9 +49,10 @@ async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | nul
   if (!activeProfile) {
     console.log("Profile not found in database. Attempting to create fallback profile on the fly...");
     const { data: supaUser } = await supabase.auth.getUser();
-    if (supaUser?.user) {
-      const email = supaUser.user.email ?? "";
-      const nama = supaUser.user.user_metadata?.nama || supaUser.user.user_metadata?.full_name || supaUser.user.user_metadata?.name || email.split("@")[0] || "Pengguna";
+    const finalEmail = supaUser?.user?.email || authEmail || "";
+    if (supaUser?.user || authEmail) {
+      const email = finalEmail;
+      const nama = supaUser?.user?.user_metadata?.nama || supaUser?.user?.user_metadata?.full_name || supaUser?.user?.user_metadata?.name || email.split("@")[0] || "Pengguna";
       const { data: newProfile, error: insErr } = await supabase
         .from("profiles")
         .insert([{
@@ -74,7 +75,9 @@ async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | nul
 
   const rolePriority: Role[] = ["admin", "guru", "ortu"];
   let role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
-  if (activeProfile.email === "hafidzullah.a@gmail.com" || activeProfile.email === "admin@sdit.sch.id") {
+
+  const userEmail = (activeProfile.email || authEmail || "").toLowerCase().trim();
+  if (userEmail === "hafidzullah.a@gmail.com" || userEmail === "admin@sdit.sch.id") {
     role = "admin";
   }
   const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;
@@ -109,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id);
+      const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id, s.user.email);
       setUser(u);
       setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
       if (u) {
