@@ -1,71 +1,134 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Role, User } from "@/mocks/types";
-import { useDB } from "@/lib/mock-store";
+// Real Lovable Cloud auth wrapper. Filename kept for import stability.
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import type { Session as SupaSession } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
+import type { Role } from "@/mocks/types";
 
-interface Session {
+interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
+  phone?: string;
+}
+
+interface AppSession {
   userId: string;
   role: Role;
   activeSiswaId?: string;
-  remember: boolean;
 }
 
 interface AuthCtx {
-  session: Session | null;
-  user: User | null;
+  session: AppSession | null;
+  user: AppUser | null;
+  supaSession: SupaSession | null;
   ready: boolean;
-  signIn: (role: Role, remember: boolean) => void;
-  signOut: () => void;
+  signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, nama: string) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
   setActiveSiswa: (id: string) => void;
+  refresh: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
-const KEY = "eduislam-session-v1";
+const ACTIVE_SISWA_KEY = "eduislam-active-siswa";
+
+async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | null; activeSiswaId?: string }> {
+  const [{ data: profile }, { data: roles }, { data: siswa }] = await Promise.all([
+    supabase.from("profiles").select("id, nama, email, phone, avatar_url").eq("id", userId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", userId),
+    supabase.from("siswa").select("id").eq("orang_tua_id", userId).order("nama").limit(1),
+  ]);
+  if (!profile) return { user: null };
+  const rolePriority: Role[] = ["admin", "guru", "ortu"];
+  const role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
+  const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;
+  const activeSiswaId = stored ?? siswa?.[0]?.id;
+  return {
+    user: {
+      id: profile.id,
+      name: profile.nama || profile.email?.split("@")[0] || "Pengguna",
+      email: profile.email ?? "",
+      avatar: profile.avatar_url ?? undefined,
+      phone: profile.phone ?? undefined,
+      role,
+    },
+    activeSiswaId,
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [supaSession, setSupaSession] = useState<SupaSession | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<AppSession | null>(null);
   const [ready, setReady] = useState(false);
-  const users = useDB((s) => s.users);
-  const siswa = useDB((s) => s.siswa);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY) ?? sessionStorage.getItem(KEY);
-      if (raw) setSession(JSON.parse(raw));
-    } catch {
-      /* ignore */
+  const hydrate = useCallback(async (s: SupaSession | null) => {
+    setSupaSession(s);
+    if (!s?.user) {
+      setUser(null);
+      setSession(null);
+      return;
     }
-    setReady(true);
+    const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id);
+    setUser(u);
+    setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
   }, []);
 
-  const signIn = (role: Role, remember: boolean) => {
-    const u = users.find((x) => x.role === role);
-    if (!u) return;
-    const activeSiswaId = role === "ortu" ? siswa.find((s) => s.orangTuaId === u.id)?.id : undefined;
-    const s: Session = { userId: u.id, role, remember, activeSiswaId };
-    setSession(s);
-    const store = remember ? localStorage : sessionStorage;
-    store.setItem(KEY, JSON.stringify(s));
-    (remember ? sessionStorage : localStorage).removeItem(KEY);
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      await hydrate(data.session ?? null);
+      setReady(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      hydrate(s ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [hydrate]);
+
+  const signInWithPassword = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? { error: error.message } : {};
   };
 
-  const signOut = () => {
-    setSession(null);
-    localStorage.removeItem(KEY);
-    sessionStorage.removeItem(KEY);
+  const signUp = async (email: string, password: string, nama: string) => {
+    const emailRedirectTo = typeof window !== "undefined" ? window.location.origin + "/app/dashboard" : undefined;
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nama }, emailRedirectTo },
+    });
+    return error ? { error: error.message } : {};
+  };
+
+  const signInWithGoogle = async () => {
+    await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: typeof window !== "undefined" ? window.location.origin : undefined,
+    });
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    if (typeof window !== "undefined") localStorage.removeItem(ACTIVE_SISWA_KEY);
   };
 
   const setActiveSiswa = (id: string) => {
-    if (!session) return;
-    const next = { ...session, activeSiswaId: id };
-    setSession(next);
-    const store = session.remember ? localStorage : sessionStorage;
-    store.setItem(KEY, JSON.stringify(next));
+    setSession((prev) => (prev ? { ...prev, activeSiswaId: id } : prev));
+    if (typeof window !== "undefined") localStorage.setItem(ACTIVE_SISWA_KEY, id);
   };
 
-  const user = session ? users.find((u) => u.id === session.userId) ?? null : null;
+  const refresh = async () => {
+    const { data } = await supabase.auth.getSession();
+    await hydrate(data.session ?? null);
+  };
 
   return (
-    <Ctx.Provider value={{ session, user, ready, signIn, signOut, setActiveSiswa }}>
+    <Ctx.Provider
+      value={{ session, user, supaSession, ready, signInWithPassword, signUp, signInWithGoogle, signOut, setActiveSiswa, refresh }}
+    >
       {children}
     </Ctx.Provider>
   );
