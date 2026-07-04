@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import type { Session as SupaSession } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Role } from "@/mocks/types";
+import { loadAllFromSupabase, subscribeToAllRealtime, unsubscribeFromAllRealtime, useDB } from "@/lib/mock-store";
+
 
 interface AppUser {
   id: string;
@@ -70,11 +72,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!s?.user) {
       setUser(null);
       setSession(null);
+      unsubscribeFromAllRealtime();
       return;
     }
     const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id);
     setUser(u);
     setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
+    if (u) {
+      try {
+        await loadAllFromSupabase(u.id, u.email);
+        subscribeToAllRealtime();
+      } catch (err) {
+        console.error("Error loading data from Supabase:", err);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -113,8 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    unsubscribeFromAllRealtime();
     await supabase.auth.signOut();
     if (typeof window !== "undefined") localStorage.removeItem(ACTIVE_SISWA_KEY);
+    useDB.getState().reset();
   };
 
   const setActiveSiswa = (id: string) => {
