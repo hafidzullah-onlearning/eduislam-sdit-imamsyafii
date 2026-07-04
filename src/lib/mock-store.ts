@@ -112,6 +112,68 @@ export const useDB = create<Store>()(
         set((state) => ({ ...state, [key]: newItems }));
 
         // Sync changes to Supabase database asynchronously
+        if (key === "users") {
+          (async () => {
+            try {
+              // 1. Detect Inserts
+              const added = newItems.filter((item) => !oldItems.some((old) => old.id === item.id));
+              for (const item of added) {
+                const userId = toUuid(item.id);
+                // Insert into profiles
+                const { error: pErr } = await supabase.from("profiles").insert([{
+                  id: userId,
+                  nama: item.name,
+                  email: item.email || null,
+                  phone: item.phone || null,
+                  avatar_url: item.avatar || null
+                }]);
+                if (pErr) console.error("Error inserting profile:", pErr);
+
+                // Insert into user_roles
+                const { error: rErr } = await supabase.from("user_roles").insert([{
+                  user_id: userId,
+                  role: item.role
+                }]);
+                if (rErr) console.error("Error inserting user role:", rErr);
+              }
+
+              // 2. Detect Updates
+              const updated = newItems.filter((item) => {
+                const old = oldItems.find((o) => o.id === item.id);
+                if (!old) return false;
+                return JSON.stringify(old) !== JSON.stringify(item);
+              });
+              for (const item of updated) {
+                const userId = toUuid(item.id);
+                const { error: pErr } = await supabase.from("profiles").update({
+                  nama: item.name,
+                  email: item.email || null,
+                  phone: item.phone || null,
+                  avatar_url: item.avatar || null
+                }).eq("id", userId);
+                if (pErr) console.error("Error updating profile:", pErr);
+
+                const { error: rErr } = await supabase.from("user_roles").upsert({
+                  user_id: userId,
+                  role: item.role
+                }, { onConflict: "user_id,role" });
+                if (rErr) console.error("Error upserting user role:", rErr);
+              }
+
+              // 3. Detect Deletions
+              const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
+              for (const item of deleted) {
+                const userId = toUuid(item.id);
+                await supabase.from("user_roles").delete().eq("user_id", userId);
+                await supabase.from("profiles").delete().eq("id", userId);
+              }
+            } catch (e) {
+              console.error("Sync error on users patch:", e);
+            }
+          })();
+          return;
+        }
+
         const tableName = tableMap[key];
         if (!tableName) return;
 
@@ -124,6 +186,9 @@ export const useDB = create<Store>()(
               if (key === "kelas") {
                 mapped.tahun_ajaran_id = toUuid("ta-2025/2026");
                 delete mapped.tahun_ajaran;
+              }
+              if (key === "siswa") {
+                delete mapped.status;
               }
               const { error } = await supabase.from(tableName).insert([mapped]);
               if (error) console.error(`Error inserting to ${tableName}:`, error);
@@ -140,6 +205,9 @@ export const useDB = create<Store>()(
               if (key === "kelas") {
                 mapped.tahun_ajaran_id = toUuid("ta-2025/2026");
                 delete mapped.tahun_ajaran;
+              }
+              if (key === "siswa") {
+                delete mapped.status;
               }
               const { error } = await supabase.from(tableName).update(mapped).eq("id", toUuid(item.id));
               if (error) console.error(`Error updating in ${tableName}:`, error);
@@ -320,7 +388,10 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
   // Hydrate the Zustand store
   useDB.setState({
     users,
-    siswa: snakeToCamel(siswa || []),
+    siswa: (siswa || []).map((s) => ({
+      ...snakeToCamel(s),
+      status: s.status || "aktif",
+    })),
     kelas: (kelas || []).map((c) => ({
       id: c.id,
       nama: c.nama,
@@ -371,6 +442,9 @@ export function subscribeToAllRealtime() {
               camelNew.tahunAjaran = ta ? ta.nama : "2025/2026";
               delete camelNew.tahunAjaranId;
             }
+            if (key === "siswa" && !camelNew.status) {
+              camelNew.status = "aktif";
+            }
             useDB.setState({ [key]: [...items, camelNew] });
           }
         } else if (eventType === "UPDATE") {
@@ -380,6 +454,9 @@ export function subscribeToAllRealtime() {
               const ta = tahunAjaranCache.find((x) => x.id === camelNew.tahunAjaranId);
               camelNew.tahunAjaran = ta ? ta.nama : "2025/2026";
               delete camelNew.tahunAjaranId;
+            }
+            if (key === "siswa" && !camelNew.status) {
+              camelNew.status = items[index].status || "aktif";
             }
             items[index] = camelNew;
             useDB.setState({ [key]: items });

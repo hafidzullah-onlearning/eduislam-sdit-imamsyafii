@@ -14,7 +14,7 @@ function AnakPage() {
   const { user, session, setActiveSiswa } = useAuth();
   const siswa = useDB((s) => s.siswa);
   const kelas = useDB((s) => s.kelas);
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id);
+  const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif");
 
   return (
     <div className="space-y-6">

@@ -13,7 +13,7 @@ function CatatanPage() {
   const { user, session } = useAuth();
   const siswa = useDB((s) => s.siswa);
   const catatan = useDB((s) => s.catatan);
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id).find((k) => k.id === session?.activeSiswaId);
+  const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").find((k) => k.id === session?.activeSiswaId);
   const list = anak ? catatan.filter((c) => c.siswaId === anak.id) : [];
   return (
     <div className="space-y-6">

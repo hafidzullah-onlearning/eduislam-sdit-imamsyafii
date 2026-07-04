@@ -15,7 +15,10 @@ function SiswaPage() {
   const siswa = useDB((s) => s.siswa);
   const [q, setQ] = useState("");
   const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
-  const list = siswa.filter((s) => myKelas.some((k) => k.id === s.kelasId)).filter((s) => s.nama.toLowerCase().includes(q.toLowerCase()));
+  const list = siswa
+    .filter((s) => s.status !== "nonaktif")
+    .filter((s) => myKelas.some((k) => k.id === s.kelasId))
+    .filter((s) => s.nama.toLowerCase().includes(q.toLowerCase()));
   return (
     <div className="space-y-6">
       <PageHeader title="Siswa" description={`${list.length} siswa aktif di kelas Anda.`} />

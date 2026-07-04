@@ -96,7 +96,7 @@ function MoodPage() {
               <Label>Siswa</Label>
               <Select value={siswaId} onValueChange={setSiswaId}>
                 <SelectTrigger><SelectValue placeholder="Pilih siswa" /></SelectTrigger>
-                <SelectContent>{siswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                <SelectContent>{siswa.filter((s) => s.status !== "nonaktif").map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">

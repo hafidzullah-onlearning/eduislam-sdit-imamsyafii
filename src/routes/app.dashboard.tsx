@@ -73,7 +73,7 @@ function OrtuDashboard() {
   const notifs = useDB((s) => s.notifikasi);
   const catatan = useDB((s) => s.catatan);
 
-  const myKids = useMemo(() => siswa.filter((s) => s.orangTuaId === user?.id), [siswa, user]);
+  const myKids = useMemo(() => siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif"), [siswa, user]);
   const anak = myKids.find((k) => k.id === session?.activeSiswaId) ?? myKids[0];
 
   if (!anak) {

@@ -26,6 +26,7 @@ export interface Siswa {
   jenisKelamin: "L" | "P";
   tanggalLahir: string;
   avatar?: string;
+  status: "aktif" | "nonaktif";
 }
 
 export interface Mapel {

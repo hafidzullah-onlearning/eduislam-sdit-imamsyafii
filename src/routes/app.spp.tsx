@@ -20,7 +20,7 @@ function SPPPage() {
   const invoices = useDB((s) => s.invoice);
   const [tab, setTab] = useState<"aktif" | "lunas">("aktif");
 
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id);
+  const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif");
   const mine = invoices.filter((i) => anak.some((a) => a.id === i.siswaId));
   const list = mine.filter((i) => (tab === "aktif" ? i.status !== "lunas" : i.status === "lunas"));
   const total = mine.filter((i) => i.status !== "lunas").reduce((a, b) => a + b.jumlah, 0);

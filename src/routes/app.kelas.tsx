@@ -15,7 +15,7 @@ function KelasPage() {
       <PageHeader title="Kelas Saya" description="Kelas yang Anda wali dan ampu." />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {myKelas.map((k) => {
-          const total = siswa.filter((s) => s.kelasId === k.id).length;
+          const total = siswa.filter((s) => s.kelasId === k.id && s.status !== "nonaktif").length;
           return (
             <div key={k.id} className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Kelas</p>

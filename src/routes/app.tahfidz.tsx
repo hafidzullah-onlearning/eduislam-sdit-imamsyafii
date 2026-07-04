@@ -32,8 +32,8 @@ function TahfidzPage() {
   const [form, setForm] = useState({ siswaId: "", surah: "", ayatDari: 1, ayatSampai: 1, target: "Juz 30", status: "lancar" as const, catatan: "" });
 
   const target = isGuru
-    ? siswa
-    : siswa.filter((s) => s.orangTuaId === user?.id).filter((s) => s.id === session?.activeSiswaId);
+    ? siswa.filter((s) => s.status !== "nonaktif")
+    : siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").filter((s) => s.id === session?.activeSiswaId);
   const focus = isGuru ? null : target[0];
   const list = focus ? tahfidz.filter((t) => t.siswaId === focus.id) : tahfidz;
   const lancar = list.filter((t) => t.status === "lancar").length;
@@ -63,7 +63,7 @@ function TahfidzPage() {
                   <div className="space-y-1.5"><Label>Siswa *</Label>
                     <Select value={form.siswaId} onValueChange={(v) => setForm({ ...form, siswaId: v })}>
                       <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                      <SelectContent>{siswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                      <SelectContent>{target.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5"><Label>Surah *</Label><Input value={form.surah} onChange={(e) => setForm({ ...form, surah: e.target.value })} placeholder="Al-Fatihah" /></div>

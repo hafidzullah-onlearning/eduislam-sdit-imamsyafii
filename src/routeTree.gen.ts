@@ -35,6 +35,7 @@ import { Route as AppSppIdRouteImport } from './routes/app.spp.$id'
 import { Route as AppAdminUsersRouteImport } from './routes/app.admin.users'
 import { Route as AppAdminTahunAjaranRouteImport } from './routes/app.admin.tahun-ajaran'
 import { Route as AppAdminSppRouteImport } from './routes/app.admin.spp'
+import { Route as AppAdminSiswaRouteImport } from './routes/app.admin.siswa'
 import { Route as AppAdminPengumumanRouteImport } from './routes/app.admin.pengumuman'
 import { Route as AppAdminPembayaranRouteImport } from './routes/app.admin.pembayaran'
 import { Route as AppAdminMapelRouteImport } from './routes/app.admin.mapel'
@@ -171,6 +172,11 @@ const AppAdminSppRoute = AppAdminSppRouteImport.update({
   path: '/admin/spp',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminSiswaRoute = AppAdminSiswaRouteImport.update({
+  id: '/admin/siswa',
+  path: '/admin/siswa',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminPengumumanRoute = AppAdminPengumumanRouteImport.update({
   id: '/admin/pengumuman',
   path: '/admin/pengumuman',
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/mapel': typeof AppAdminMapelRoute
   '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
   '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/siswa': typeof AppAdminSiswaRoute
   '/app/admin/spp': typeof AppAdminSppRoute
   '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
   '/app/admin/users': typeof AppAdminUsersRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/app/admin/mapel': typeof AppAdminMapelRoute
   '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
   '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/siswa': typeof AppAdminSiswaRoute
   '/app/admin/spp': typeof AppAdminSppRoute
   '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
   '/app/admin/users': typeof AppAdminUsersRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/app/admin/mapel': typeof AppAdminMapelRoute
   '/app/admin/pembayaran': typeof AppAdminPembayaranRoute
   '/app/admin/pengumuman': typeof AppAdminPengumumanRoute
+  '/app/admin/siswa': typeof AppAdminSiswaRoute
   '/app/admin/spp': typeof AppAdminSppRoute
   '/app/admin/tahun-ajaran': typeof AppAdminTahunAjaranRoute
   '/app/admin/users': typeof AppAdminUsersRoute
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
     | '/app/admin/mapel'
     | '/app/admin/pembayaran'
     | '/app/admin/pengumuman'
+    | '/app/admin/siswa'
     | '/app/admin/spp'
     | '/app/admin/tahun-ajaran'
     | '/app/admin/users'
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/app/admin/mapel'
     | '/app/admin/pembayaran'
     | '/app/admin/pengumuman'
+    | '/app/admin/siswa'
     | '/app/admin/spp'
     | '/app/admin/tahun-ajaran'
     | '/app/admin/users'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/app/admin/mapel'
     | '/app/admin/pembayaran'
     | '/app/admin/pengumuman'
+    | '/app/admin/siswa'
     | '/app/admin/spp'
     | '/app/admin/tahun-ajaran'
     | '/app/admin/users'
@@ -588,6 +600,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminSppRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/admin/siswa': {
+      id: '/app/admin/siswa'
+      path: '/admin/siswa'
+      fullPath: '/app/admin/siswa'
+      preLoaderRoute: typeof AppAdminSiswaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/admin/pengumuman': {
       id: '/app/admin/pengumuman'
       path: '/admin/pengumuman'
@@ -663,6 +682,7 @@ interface AppRouteChildren {
   AppAdminMapelRoute: typeof AppAdminMapelRoute
   AppAdminPembayaranRoute: typeof AppAdminPembayaranRoute
   AppAdminPengumumanRoute: typeof AppAdminPengumumanRoute
+  AppAdminSiswaRoute: typeof AppAdminSiswaRoute
   AppAdminSppRoute: typeof AppAdminSppRoute
   AppAdminTahunAjaranRoute: typeof AppAdminTahunAjaranRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
@@ -694,6 +714,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminMapelRoute: AppAdminMapelRoute,
   AppAdminPembayaranRoute: AppAdminPembayaranRoute,
   AppAdminPengumumanRoute: AppAdminPengumumanRoute,
+  AppAdminSiswaRoute: AppAdminSiswaRoute,
   AppAdminSppRoute: AppAdminSppRoute,
   AppAdminTahunAjaranRoute: AppAdminTahunAjaranRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,

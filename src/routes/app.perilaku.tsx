@@ -42,7 +42,7 @@ function PerilakuPage() {
               <div className="space-y-1.5"><Label>Siswa</Label>
                 <Select value={f.siswaId} onValueChange={(v) => setF({ ...f, siswaId: v })}>
                   <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                  <SelectContent>{siswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                  <SelectContent>{siswa.filter((s) => s.status !== "nonaktif").map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5"><Label>Aspek</Label>

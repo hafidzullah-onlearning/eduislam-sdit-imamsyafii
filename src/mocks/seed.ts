@@ -38,11 +38,11 @@ export const seedKelas: Kelas[] = [
 ];
 
 export const seedSiswa: Siswa[] = [
-  { id: "s-1", nama: "Muhammad Faris Ridho", nis: "24001", kelasId: "k-3a", orangTuaId: "u-ortu-1", jenisKelamin: "L", tanggalLahir: "2016-05-12" },
-  { id: "s-2", nama: "Aisha Nurhadi", nis: "24002", kelasId: "k-3a", orangTuaId: "u-ortu-1", jenisKelamin: "P", tanggalLahir: "2016-08-20" },
-  { id: "s-3", nama: "Yusuf Nurhadi", nis: "24010", kelasId: "k-4a", orangTuaId: "u-ortu-1", jenisKelamin: "L", tanggalLahir: "2015-03-01" },
-  { id: "s-4", nama: "Zahra Salma", nis: "24011", kelasId: "k-3a", orangTuaId: "u-ortu-2", jenisKelamin: "P", tanggalLahir: "2016-11-11" },
-  { id: "s-5", nama: "Umar Aditya", nis: "24012", kelasId: "k-3b", orangTuaId: "u-ortu-2", jenisKelamin: "L", tanggalLahir: "2016-07-04" },
+  { id: "s-1", nama: "Muhammad Faris Ridho", nis: "24001", kelasId: "k-3a", orangTuaId: "u-ortu-1", jenisKelamin: "L", tanggalLahir: "2016-05-12", status: "aktif" },
+  { id: "s-2", nama: "Aisha Nurhadi", nis: "24002", kelasId: "k-3a", orangTuaId: "u-ortu-1", jenisKelamin: "P", tanggalLahir: "2016-08-20", status: "aktif" },
+  { id: "s-3", nama: "Yusuf Nurhadi", nis: "24010", kelasId: "k-4a", orangTuaId: "u-ortu-1", jenisKelamin: "L", tanggalLahir: "2015-03-01", status: "aktif" },
+  { id: "s-4", nama: "Zahra Salma", nis: "24011", kelasId: "k-3a", orangTuaId: "u-ortu-2", jenisKelamin: "P", tanggalLahir: "2016-11-11", status: "aktif" },
+  { id: "s-5", nama: "Umar Aditya", nis: "24012", kelasId: "k-3b", orangTuaId: "u-ortu-2", jenisKelamin: "L", tanggalLahir: "2016-07-04", status: "aktif" },
 ];
 
 export const seedMapel: Mapel[] = [

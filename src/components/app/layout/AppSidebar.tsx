@@ -101,6 +101,7 @@ const navAdmin: { label: string; items: NavItem[] }[] = [
     label: "Master Data",
     items: [
       { title: "User", url: "/app/admin/users", icon: Users },
+      { title: "Siswa", url: "/app/admin/siswa", icon: Baby },
       { title: "Kelas", url: "/app/admin/kelas", icon: School },
       { title: "Mata Pelajaran", url: "/app/admin/mapel", icon: BookOpen },
       { title: "Tahun Ajaran", url: "/app/admin/tahun-ajaran", icon: CalendarDays },

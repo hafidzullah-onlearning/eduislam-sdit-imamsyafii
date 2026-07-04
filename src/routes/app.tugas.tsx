@@ -40,7 +40,7 @@ function OrtuTugas() {
   const [bukti, setBukti] = useState("");
   const [komentar, setKomentar] = useState("");
 
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id).find((k) => k.id === session?.activeSiswaId);
+  const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").find((k) => k.id === session?.activeSiswaId);
 
   const list = useMemo(() => {
     if (!anak) return [];
