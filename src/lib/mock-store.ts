@@ -246,7 +246,7 @@ function mapSeedItem(item: any, realUserId: string, realUserEmail: string): any 
   else if (realUserEmail === "ahmad@sdit.sch.id") loggedInSeedId = "u-guru-2";
   else if (realUserEmail === "ridho@keluarga.id") loggedInSeedId = "u-ortu-1";
   else if (realUserEmail === "salma@keluarga.id") loggedInSeedId = "u-ortu-2";
-  else if (realUserEmail === "admin@sdit.sch.id") loggedInSeedId = "u-admin-1";
+  else if (realUserEmail === "admin@sdit.sch.id" || realUserEmail === "hafidzullah.a@gmail.com") loggedInSeedId = "u-admin-1";
 
   const mapped = JSON.parse(JSON.stringify(item));
 

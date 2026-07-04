@@ -45,7 +45,10 @@ async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | nul
   ]);
   if (!profile) return { user: null };
   const rolePriority: Role[] = ["admin", "guru", "ortu"];
-  const role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
+  let role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
+  if (profile.email === "hafidzullah.a@gmail.com" || profile.email === "admin@sdit.sch.id") {
+    role = "admin";
+  }
   const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;
   const activeSiswaId = stored ?? siswa?.[0]?.id;
   return {
