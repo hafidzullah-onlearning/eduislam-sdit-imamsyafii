@@ -43,21 +43,49 @@ async function loadProfileAndRole(userId: string): Promise<{ user: AppUser | nul
     supabase.from("user_roles").select("role").eq("user_id", userId),
     supabase.from("siswa").select("id").eq("orang_tua_id", userId).order("nama").limit(1),
   ]);
-  if (!profile) return { user: null };
+
+  let activeProfile = profile;
+
+  if (!activeProfile) {
+    console.log("Profile not found in database. Attempting to create fallback profile on the fly...");
+    const { data: supaUser } = await supabase.auth.getUser();
+    if (supaUser?.user) {
+      const email = supaUser.user.email ?? "";
+      const nama = supaUser.user.user_metadata?.nama || supaUser.user.user_metadata?.full_name || supaUser.user.user_metadata?.name || email.split("@")[0] || "Pengguna";
+      const { data: newProfile, error: insErr } = await supabase
+        .from("profiles")
+        .insert([{
+          id: userId,
+          nama: nama,
+          email: email,
+        }])
+        .select()
+        .maybeSingle();
+      
+      if (!insErr && newProfile) {
+        activeProfile = newProfile;
+      } else {
+        console.error("Failed to create fallback profile:", insErr);
+      }
+    }
+  }
+
+  if (!activeProfile) return { user: null };
+
   const rolePriority: Role[] = ["admin", "guru", "ortu"];
   let role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
-  if (profile.email === "hafidzullah.a@gmail.com" || profile.email === "admin@sdit.sch.id") {
+  if (activeProfile.email === "hafidzullah.a@gmail.com" || activeProfile.email === "admin@sdit.sch.id") {
     role = "admin";
   }
   const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;
   const activeSiswaId = stored ?? siswa?.[0]?.id;
   return {
     user: {
-      id: profile.id,
-      name: profile.nama || profile.email?.split("@")[0] || "Pengguna",
-      email: profile.email ?? "",
-      avatar: profile.avatar_url ?? undefined,
-      phone: profile.phone ?? undefined,
+      id: activeProfile.id,
+      name: activeProfile.nama || activeProfile.email?.split("@")[0] || "Pengguna",
+      email: activeProfile.email ?? "",
+      avatar: activeProfile.avatar_url ?? undefined,
+      phone: activeProfile.phone ?? undefined,
       role,
     },
     activeSiswaId,
@@ -71,30 +99,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   const hydrate = useCallback(async (s: SupaSession | null) => {
+    setReady(false);
     setSupaSession(s);
     if (!s?.user) {
       setUser(null);
       setSession(null);
       unsubscribeFromAllRealtime();
+      setReady(true);
       return;
     }
-    const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id);
-    setUser(u);
-    setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
-    if (u) {
-      try {
-        await loadAllFromSupabase(u.id, u.email);
-        subscribeToAllRealtime();
-      } catch (err) {
-        console.error("Error loading data from Supabase:", err);
+    try {
+      const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id);
+      setUser(u);
+      setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
+      if (u) {
+        try {
+          await loadAllFromSupabase(u.id, u.email);
+          subscribeToAllRealtime();
+        } catch (err) {
+          console.error("Error loading data from Supabase:", err);
+        }
       }
+    } catch (err) {
+      console.error("Error during hydration:", err);
+    } finally {
+      setReady(true);
     }
   }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       await hydrate(data.session ?? null);
-      setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       hydrate(s ?? null);
