@@ -1,5 +1,5 @@
 // Real Lovable Cloud auth wrapper. Filename kept for import stability.
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import type { Session as SupaSession } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Role } from "@/mocks/types";
@@ -100,15 +100,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<AppSession | null>(null);
   const [ready, setReady] = useState(false);
+  const currentUserIdRef = useRef<string | undefined>(undefined);
+  const isReadyRef = useRef<boolean>(false);
 
   const hydrate = useCallback(async (s: SupaSession | null) => {
-    setReady(false);
+    const isNewUser = s?.user?.id !== currentUserIdRef.current;
+    if (!isReadyRef.current || isNewUser) {
+      setReady(false);
+    }
     setSupaSession(s);
+    currentUserIdRef.current = s?.user?.id;
     if (!s?.user) {
       setUser(null);
       setSession(null);
       unsubscribeFromAllRealtime();
       setReady(true);
+      isReadyRef.current = true;
       return;
     }
     try {
@@ -127,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Error during hydration:", err);
     } finally {
       setReady(true);
+      isReadyRef.current = true;
     }
   }, []);
 
