@@ -1,7 +1,10 @@
+
+
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { seed, type SeedShape } from "@/mocks/seed";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Mappings between Zustand store keys and Supabase table names
 export const tableMap: Record<string, string> = {
@@ -159,14 +162,20 @@ export const useDB = create<Store>()(
                   phone: item.phone || null,
                   avatar_url: item.avatar || null
                 }]);
-                if (pErr) console.error("Error inserting profile:", pErr);
+                if (pErr) {
+                  console.error("Error inserting profile:", pErr);
+                  toast.error(`Gagal menyimpan profil user ke database: ${pErr.message}`);
+                }
 
                 // Insert into user_roles
                 const { error: rErr } = await supabase.from("user_roles").insert([{
                   user_id: userId,
                   role: item.role
                 }]);
-                if (rErr) console.error("Error inserting user role:", rErr);
+                if (rErr) {
+                  console.error("Error inserting user role:", rErr);
+                  toast.error(`Gagal menyimpan peran user ke database: ${rErr.message}`);
+                }
               }
 
               // 2. Detect Updates
@@ -183,21 +192,35 @@ export const useDB = create<Store>()(
                   phone: item.phone || null,
                   avatar_url: item.avatar || null
                 }).eq("id", userId);
-                if (pErr) console.error("Error updating profile:", pErr);
+                if (pErr) {
+                  console.error("Error updating profile:", pErr);
+                  toast.error(`Gagal memperbarui profil user di database: ${pErr.message}`);
+                }
 
                 const { error: rErr } = await supabase.from("user_roles").upsert({
                   user_id: userId,
                   role: item.role
                 }, { onConflict: "user_id,role" });
-                if (rErr) console.error("Error upserting user role:", rErr);
+                if (rErr) {
+                  console.error("Error upserting user role:", rErr);
+                  toast.error(`Gagal memperbarui peran user di database: ${rErr.message}`);
+                }
               }
 
               // 3. Detect Deletions
               const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
               for (const item of deleted) {
                 const userId = toUuid(item.id);
-                await supabase.from("user_roles").delete().eq("user_id", userId);
-                await supabase.from("profiles").delete().eq("id", userId);
+                const { error: rErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+                if (rErr) {
+                  console.error("Error deleting user role:", rErr);
+                  toast.error(`Gagal menghapus peran user: ${rErr.message}`);
+                }
+                const { error: pErr } = await supabase.from("profiles").delete().eq("id", userId);
+                if (pErr) {
+                  console.error("Error deleting profile:", pErr);
+                  toast.error(`Gagal menghapus profil user: ${pErr.message}`);
+                }
               }
             } catch (e) {
               console.error("Sync error on users patch:", e);
@@ -226,7 +249,10 @@ export const useDB = create<Store>()(
                 delete mapped.status;
               }
               const { error } = await supabase.from(tableName).insert([mapped]);
-              if (error) console.error(`Error inserting to ${tableName}:`, error);
+              if (error) {
+                console.error(`Error inserting to ${tableName}:`, error);
+                toast.error(`Gagal menyimpan ke tabel ${tableName}: ${error.message}`);
+              }
             }
 
             // 2. Detect Updates
@@ -248,17 +274,24 @@ export const useDB = create<Store>()(
                 delete mapped.status;
               }
               const { error } = await supabase.from(tableName).update(mapped).eq("id", toUuid(item.id));
-              if (error) console.error(`Error updating in ${tableName}:`, error);
+              if (error) {
+                console.error(`Error updating in ${tableName}:`, error);
+                toast.error(`Gagal memperbarui tabel ${tableName}: ${error.message}`);
+              }
             }
 
             // 3. Detect Deletions
             const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
             for (const item of deleted) {
               const { error } = await supabase.from(tableName).delete().eq("id", toUuid(item.id));
-              if (error) console.error(`Error deleting from ${tableName}:`, error);
+              if (error) {
+                console.error(`Error deleting from ${tableName}:`, error);
+                toast.error(`Gagal menghapus dari tabel ${tableName}: ${error.message}`);
+              }
             }
           } catch (e) {
             console.error(`Sync error on patch ${key}:`, e);
+            toast.error(`Gagal sinkronisasi data: ${e instanceof Error ? e.message : e}`);
           }
         })();
       },
@@ -297,7 +330,19 @@ function mapSeedItem(item: any, realUserId: string, realUserEmail: string): any 
       if (val.startsWith("u-")) {
         return null; // Set other users to null to prevent foreign key constraint fails
       }
-      return toUuid(val);
+      if (key) {
+        const keyLower = key.toLowerCase();
+        if (
+          keyLower === "id" ||
+          keyLower.endsWith("id") ||
+          keyLower.endsWith("_id") ||
+          keyLower === "createdby" ||
+          keyLower === "created_by"
+        ) {
+          return toUuid(val);
+        }
+      }
+      return val;
     }
     if (Array.isArray(val)) {
       return val.map((x) => mapValue(x, key));
