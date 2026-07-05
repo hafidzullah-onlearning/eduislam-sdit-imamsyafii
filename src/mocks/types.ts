@@ -164,3 +164,17 @@ export interface CatatanGuru {
   guruId: string;
   tipe: "positif" | "perlu-perhatian" | "info";
 }
+
+export interface TahunAjaran {
+  id: string;
+  nama: string;
+  aktif: boolean;
+}
+
+export interface SppTarif {
+  id: string;
+  tingkat: number;
+  jumlah: number;
+  tahunAjaranId: string;
+}
+

@@ -19,6 +19,8 @@ export const tableMap: Record<string, string> = {
   pengumuman: "pengumuman",
   catatan: "catatan_guru",
   audit: "audit_log",
+  tahunAjaran: "tahun_ajaran",
+  sppTarif: "spp_tarif",
 };
 
 // Static ID to UUID map for consistent seeding
@@ -184,8 +186,11 @@ export const useDB = create<Store>()(
             for (const item of added) {
               const mapped = camelToSnake(item);
               if (key === "kelas") {
-                mapped.tahun_ajaran_id = toUuid("ta-2025/2026");
+                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
                 delete mapped.tahun_ajaran;
+              }
+              if (key === "sppTarif") {
+                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId);
               }
               if (key === "siswa") {
                 delete mapped.status;
@@ -203,8 +208,11 @@ export const useDB = create<Store>()(
             for (const item of updated) {
               const mapped = camelToSnake(item);
               if (key === "kelas") {
-                mapped.tahun_ajaran_id = toUuid("ta-2025/2026");
+                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
                 delete mapped.tahun_ajaran;
+              }
+              if (key === "sppTarif") {
+                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId);
               }
               if (key === "siswa") {
                 delete mapped.status;
@@ -281,16 +289,16 @@ function mapSeedItem(item: any, realUserId: string, realUserEmail: string): any 
 async function seedSupabaseDatabase(realUserId: string, realUserEmail: string) {
   console.log("[Supabase] Seeding database with converted mock records...");
   try {
-    const years = [{ id: toUuid("ta-2025/2026"), nama: "2025/2026", aktif: true }];
-    await supabase.from("tahun_ajaran").upsert(years);
-
     const mapAndConvert = (arr: any[], key: string) => {
       return arr.map((item) => {
         const mapped = mapSeedItem(item, realUserId, realUserEmail);
         const dbObj = camelToSnake(mapped);
         if (key === "kelas") {
-          dbObj.tahun_ajaran_id = toUuid("ta-2025/2026");
+          dbObj.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
           delete dbObj.tahun_ajaran;
+        }
+        if (key === "sppTarif") {
+          dbObj.tahun_ajaran_id = toUuid(item.tahunAjaranId);
         }
         if (key === "notifikasi") {
           dbObj.user_id = realUserId;
@@ -299,6 +307,8 @@ async function seedSupabaseDatabase(realUserId: string, realUserEmail: string) {
       });
     };
 
+    await supabase.from("tahun_ajaran").upsert(mapAndConvert(seed.tahunAjaran, "tahunAjaran"));
+    await supabase.from("spp_tarif").upsert(mapAndConvert(seed.sppTarif, "sppTarif"));
     await supabase.from("mapel").upsert(mapAndConvert(seed.mapel, "mapel"));
     await supabase.from("kelas").upsert(mapAndConvert(seed.kelas, "kelas"));
     await supabase.from("siswa").upsert(mapAndConvert(seed.siswa, "siswa"));
@@ -352,6 +362,8 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     { data: pengumuman },
     { data: catatan },
     { data: audit },
+    { data: tahunAjaran },
+    { data: sppTarif },
   ] = await Promise.all([
     supabase.from("profiles").select("*"),
     supabase.from("user_roles").select("*"),
@@ -369,6 +381,8 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     supabase.from("pengumuman").select("*"),
     supabase.from("catatan_guru").select("*"),
     supabase.from("audit_log").select("*"),
+    supabase.from("tahun_ajaran").select("*"),
+    supabase.from("spp_tarif").select("*"),
   ]);
 
   // Map profiles and roles to users
@@ -412,6 +426,8 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     pengumuman: snakeToCamel(pengumuman || []),
     catatan: snakeToCamel(catatan || []),
     audit: snakeToCamel(audit || []),
+    tahunAjaran: snakeToCamel(tahunAjaran || []),
+    sppTarif: snakeToCamel(sppTarif || []),
   });
 
   console.log("[Supabase] Zustand store successfully hydrated from database.");

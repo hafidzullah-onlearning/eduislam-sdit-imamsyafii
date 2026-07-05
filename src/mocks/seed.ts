@@ -14,6 +14,8 @@ import type {
   Tugas,
   TugasSubmission,
   User,
+  TahunAjaran,
+  SppTarif,
 } from "./types";
 
 const today = new Date();
@@ -196,6 +198,20 @@ export const seedAudit: AuditLog[] = [
   { id: "a-3", userId: "u-guru-1", aksi: "UPDATE", target: "nilai/n-1", tanggal: dOffset(-2) },
 ];
 
+export const seedTahunAjaran: TahunAjaran[] = [
+  { id: "ta-2025/2026", nama: "2025/2026", aktif: true },
+  { id: "ta-2024/2025", nama: "2024/2025", aktif: false }
+];
+
+export const seedSppTarif: SppTarif[] = [
+  { id: "spp-1", tingkat: 1, jumlah: 800000, tahunAjaranId: "ta-2025/2026" },
+  { id: "spp-2", tingkat: 2, jumlah: 800000, tahunAjaranId: "ta-2025/2026" },
+  { id: "spp-3", tingkat: 3, jumlah: 850000, tahunAjaranId: "ta-2025/2026" },
+  { id: "spp-4", tingkat: 4, jumlah: 850000, tahunAjaranId: "ta-2025/2026" },
+  { id: "spp-5", tingkat: 5, jumlah: 900000, tahunAjaranId: "ta-2025/2026" },
+  { id: "spp-6", tingkat: 6, jumlah: 900000, tahunAjaranId: "ta-2025/2026" }
+];
+
 export const seed = {
   users: seedUsers,
   kelas: seedKelas,
@@ -212,6 +228,8 @@ export const seed = {
   pengumuman: seedPengumuman,
   catatan: seedCatatan,
   audit: seedAudit,
+  tahunAjaran: seedTahunAjaran,
+  sppTarif: seedSppTarif,
 };
 
 export type SeedShape = typeof seed;
