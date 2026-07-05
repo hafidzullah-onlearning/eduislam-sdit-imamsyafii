@@ -49,8 +49,8 @@ const idUuidMap: Record<string, string> = {
 };
 
 // Deterministic UUID generator from string seed IDs
-export function toUuid(id: string): string {
-  if (!id) return id;
+export function toUuid(id: string): string | null {
+  if (!id || id === "" || id === "null" || id === "undefined") return null;
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     return id;
   }
