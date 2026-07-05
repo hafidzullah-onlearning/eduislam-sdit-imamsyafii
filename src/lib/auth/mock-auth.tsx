@@ -77,12 +77,7 @@ async function loadProfileAndRole(userId: string, authEmail?: string): Promise<{
   let role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
 
   const userEmail = (activeProfile.email || authEmail || "").toLowerCase().trim();
-  if (
-    userEmail === "hafidzullah.a@gmail.com" ||
-    userEmail === "admin@sdit.sch.id" ||
-    userEmail === "hafidzullah.belajar@gmail.com" ||
-    userEmail === "hafidz10amin@gmail.com"
-  ) {
+  if (userEmail === "hafidzullah.a@gmail.com") {
     role = "admin";
   }
   const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;

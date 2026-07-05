@@ -1,10 +1,10 @@
--- Update handle_new_user function to automatically assign 'admin' role to admin emails
+-- Update handle_new_user function to automatically assign 'admin' role to hafidzullah.a@gmail.com
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_role public.app_role := 'ortu';
 BEGIN
-  IF NEW.email IN ('hafidzullah.a@gmail.com', 'admin@sdit.sch.id', 'hafidzullah.belajar@gmail.com', 'hafidz10amin@gmail.com') THEN
+  IF NEW.email = 'hafidzullah.a@gmail.com' THEN
     v_role := 'admin';
   END IF;
 
@@ -24,19 +24,16 @@ BEGIN
 END;
 $$;
 
--- Make existing admin users admins if they already exist in auth.users
+-- Make existing user hafidzullah.a@gmail.com an admin if they already exist in auth.users
 DO $$
 DECLARE
-  v_email TEXT;
   v_user_id UUID;
 BEGIN
-  FOR v_email IN SELECT unnest(ARRAY['hafidzullah.a@gmail.com', 'admin@sdit.sch.id', 'hafidzullah.belajar@gmail.com', 'hafidz10amin@gmail.com']) LOOP
-    SELECT id INTO v_user_id FROM auth.users WHERE email = v_email;
-    IF v_user_id IS NOT NULL THEN
-      -- Delete existing roles if any to avoid conflicts
-      DELETE FROM public.user_roles WHERE user_id = v_user_id;
-      -- Insert admin role
-      INSERT INTO public.user_roles (user_id, role) VALUES (v_user_id, 'admin');
-    END IF;
-  END LOOP;
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'hafidzullah.a@gmail.com';
+  IF v_user_id IS NOT NULL THEN
+    -- Delete existing roles if any to avoid conflicts
+    DELETE FROM public.user_roles WHERE user_id = v_user_id;
+    -- Insert admin role
+    INSERT INTO public.user_roles (user_id, role) VALUES (v_user_id, 'admin');
+  END IF;
 END $$;
