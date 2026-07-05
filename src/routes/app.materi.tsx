@@ -14,14 +14,34 @@ import { useAuth } from "@/lib/auth/mock-auth";
 import { useDB, genId } from "@/lib/mock-store";
 import { toast } from "sonner";
 import { createServerFn } from "@tanstack/react-start";
+import fs from "node:fs";
+import path from "node:path";
 
 export const Route = createFileRoute("/app/materi")({ component: MateriPage });
+
+// Helper to reliably load GEMINI_API_KEY in both dev and production
+function getGeminiApiKey() {
+  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
+  try {
+    const envPath = path.resolve(process.cwd(), ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf-8");
+      const match = content.match(/^GEMINI_API_KEY\s*=\s*["']?([^"'\r\n]+)["']?/m);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+  } catch (e) {
+    console.error("Error reading .env file manually:", e);
+  }
+  return null;
+}
 
 // Server function for generating material learning instructions via Gemini AI
 export const generateMateriInstructions = createServerFn(
   "POST",
   async (data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = getGeminiApiKey();
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured on the server");
     }
