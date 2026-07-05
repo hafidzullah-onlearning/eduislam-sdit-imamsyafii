@@ -13,8 +13,81 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { useAuth } from "@/lib/auth/mock-auth";
 import { useDB, genId } from "@/lib/mock-store";
 import { toast } from "sonner";
+import { createServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/app/materi")({ component: MateriPage });
+
+// Server function for generating material learning instructions via Gemini AI
+export const generateMateriInstructions = createServerFn(
+  "POST",
+  async (data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not configured on the server");
+    }
+
+    const prompt = `Tulis deskripsi / petunjuk belajar yang ramah, hangat, dan sangat mudah dipahami oleh orang tua siswa Sekolah Dasar (SD) serta anak mereka untuk mendampingi belajar di rumah.
+Materi pelajaran ini dikirim oleh guru untuk dipelajari mandiri.
+
+Informasi Materi:
+- Judul Materi: ${data.judul}
+- Mata Pelajaran: ${data.mapelName}
+- Tingkat Kelas: ${data.kelasName}
+- Tautan Sumber/Lampiran: ${data.linkUrl || "Tidak ada lampiran"}
+
+Petunjuk belajar ini WAJIB berisi:
+1. Ringkasan Singkat: Jelaskan apa yang dipelajari dengan kalimat yang sangat sederhana dan menarik bagi anak-anak.
+2. Panduan Orang Tua: Langkah-langkah konkrit dan praktis yang bisa dilakukan orang tua di rumah untuk membantu anak memahami materi ini.
+3. Pertanyaan Pemantik: 2-3 pertanyaan seru/interaktif yang bisa ditanyakan orang tua untuk memicu rasa ingin tahu anak.
+
+Gunakan gaya bahasa yang santun, hangat, bernuansa Islami (menggunakan Assalamu'alaikum / Barakallahu fiikum jika sesuai), dan hindari istilah akademis yang terlalu rumit.`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.statusText} - ${errorText}`);
+    }
+
+    const resData = (await response.json()) as any;
+    const generatedText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!generatedText) {
+      throw new Error("No text returned from Gemini API");
+    }
+
+    return { text: generatedText };
+  }
+);
+
+// High-quality local rule-based fallback generator
+const generateLocalInstructions = (judul: string, mapelName: string, kelasName: string, linkUrl: string) => {
+  return `Assalamu'alaikum Warahmatullahi Wabarakatuh, Ayah dan Bunda yang dirahmati Allah.
+
+Berikut adalah petunjuk belajar untuk mendampingi Ananda mempelajari materi "${judul}" dalam mata pelajaran ${mapelName} untuk ${kelasName}.
+
+1. Ringkasan Singkat:
+Hari ini kita akan belajar tentang "${judul}". Materi ini mengajak Ananda untuk memahami konsep dasar dari ${mapelName} dengan cara yang menyenangkan dan praktis.
+
+2. Panduan Pendampingan untuk Orang Tua di Rumah:
+- Langkah 1: Ajak Ananda berdoa sebelum mulai belajar agar Allah memberikan keberkahan ilmu.
+- Langkah 2: Pelajari materi bersama melalui tautan berikut: ${linkUrl || "(Gunakan buku cetak/catatan Ananda)"}
+- Langkah 3: Berikan senyuman dan apresiasi atas setiap proses belajar yang diselesaikan Ananda.
+
+3. Pertanyaan Pemantik Seru:
+- "Apa hal baru dan menarik yang sudah kamu pelajari tadi?"
+- "Bisa tolong ceritakan kembali bagian paling menyenangkan dari materi ini ke Ayah/Bunda?"
+
+Barakallahu fiikum. Selamat belajar bersama Ananda tercinta!`;
+};
 
 interface Materi {
   id: string;
@@ -36,6 +109,7 @@ function MateriPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ judul: "", deskripsi: "", linkUrl: "", kelasId: "", mapelId: "" });
   const [materiList, setMateriList] = useState<Materi[]>([]);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -84,6 +158,42 @@ function MateriPage() {
     toast.success("Materi berhasil dihapus");
   };
 
+  const handleGenerateAI = async () => {
+    if (!form.judul || !form.kelasId || !form.mapelId) {
+      return toast.error("Lengkapi Judul, Mapel, dan Kelas terlebih dahulu agar AI memahami konteksnya.");
+    }
+
+    setLoadingAI(true);
+    const selectedKelas = kelas.find((k) => k.id === form.kelasId);
+    const selectedMapel = mapel.find((m) => m.id === form.mapelId);
+
+    const kelasName = selectedKelas ? `Kelas ${selectedKelas.nama}` : "Kelas";
+    const mapelName = selectedMapel ? selectedMapel.nama : "Pelajaran";
+
+    try {
+      const response = await generateMateriInstructions({
+        judul: form.judul,
+        mapelName,
+        kelasName,
+        linkUrl: form.linkUrl,
+      });
+      setForm((prev) => ({ ...prev, deskripsi: response.text }));
+      toast.success("Petunjuk belajar berhasil dibuat oleh AI!");
+    } catch (error) {
+      console.error("AI generation failed:", error);
+      const fallbackText = generateLocalInstructions(
+        form.judul,
+        mapelName,
+        kelasName,
+        form.linkUrl
+      );
+      setForm((prev) => ({ ...prev, deskripsi: fallbackText }));
+      toast.info("Menggunakan draf petunjuk standar karena AI tidak merespon.");
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   // Filter list to show materials for classes the teacher manages
   const list = materiList.filter((m) => myKelas.some((k) => k.id === m.kelasId));
 
@@ -107,10 +217,6 @@ function MateriPage() {
                 <div className="space-y-1.5">
                   <Label>Judul Materi *</Label>
                   <Input value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} placeholder="Contoh: Pengenalan Huruf Hijaiyah" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Deskripsi / Petunjuk</Label>
-                  <Textarea value={form.deskripsi} onChange={(e) => setForm({ ...form, deskripsi: e.target.value })} placeholder="Berikan petunjuk belajar untuk siswa..." />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
@@ -148,6 +254,34 @@ function MateriPage() {
                   <Label>URL Sumber (Drive / YouTube / PDF)</Label>
                   <Input value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} placeholder="https://..." />
                 </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label>Deskripsi / Petunjuk Belajar</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs text-primary font-semibold hover:bg-primary/10 gap-1 px-2.5 rounded-full"
+                      onClick={handleGenerateAI}
+                      disabled={loadingAI}
+                    >
+                      {loadingAI ? (
+                        <>
+                          <span className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                          Menulis...
+                        </>
+                      ) : (
+                        "✨ Tulis dengan AI"
+                      )}
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={form.deskripsi}
+                    onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+                    placeholder="Tulis petunjuk belajar atau klik tombol di atas untuk generate otomatis oleh AI..."
+                    className="h-36 font-sans text-sm"
+                  />
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -176,7 +310,11 @@ function MateriPage() {
                       <Badge variant="outline">Kelas {k?.nama}</Badge>
                       <Badge variant="secondary">{mp?.nama}</Badge>
                     </div>
-                    {m.deskripsi && <p className="mt-2 text-sm text-muted-foreground">{m.deskripsi}</p>}
+                    {m.deskripsi && (
+                      <div className="mt-3 text-sm text-foreground/90 whitespace-pre-wrap bg-surface-soft/40 p-4 rounded-xl border border-border/40">
+                        {m.deskripsi}
+                      </div>
+                    )}
                     {m.linkUrl && (
                       <div className="mt-3">
                         <a
@@ -193,7 +331,7 @@ function MateriPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 animate-in fade-in zoom-in-95 duration-200"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 shrink-0"
                     onClick={() => handleDelete(m.id)}
                   >
                     <Trash2 className="h-4 w-4" />
