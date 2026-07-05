@@ -23,8 +23,10 @@ function AppLayout() {
       router.navigate({ to: "/app/login", replace: true });
     } else if (session && isPublic) {
       router.navigate({ to: "/app/dashboard", replace: true });
+    } else if (session && pathname.startsWith("/app/admin") && session.role !== "admin") {
+      router.navigate({ to: "/app/dashboard", replace: true });
     }
-  }, [ready, session, isPublic, router]);
+  }, [ready, session, isPublic, pathname, router]);
 
   if (!ready) {
     return (
