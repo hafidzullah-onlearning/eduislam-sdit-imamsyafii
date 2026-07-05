@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { useAuth } from "@/lib/auth/mock-auth";
 
 const NAV = [
   { label: "Fitur Utama", href: "#fitur" },
@@ -13,6 +14,7 @@ const NAV = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { session } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -53,10 +55,10 @@ export function Navbar() {
 
         <div className="hidden items-center gap-2 lg:flex">
           <Link
-            to="/app/login"
+            to={session ? "/app/dashboard" : "/app/login"}
             className="rounded-full px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-surface-soft"
           >
-            Portal Masuk
+            {session ? "Dashboard" : "Portal Masuk"}
           </Link>
           <a
             href="#cta"
@@ -90,10 +92,10 @@ export function Navbar() {
             ))}
             <div className="mt-2 flex gap-2">
               <Link
-                to="/app/login"
+                to={session ? "/app/dashboard" : "/app/login"}
                 className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-semibold"
               >
-                Portal Masuk
+                {session ? "Dashboard" : "Portal Masuk"}
               </Link>
               <a
                 href="#cta"
