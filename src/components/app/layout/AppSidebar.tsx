@@ -63,6 +63,7 @@ const navGuru: { label: string; items: NavItem[] }[] = [
       { title: "Tahfidz", url: "/app/tahfidz", icon: BookMarked },
       { title: "Mood Siswa", url: "/app/mood", icon: Smile },
       { title: "Perilaku", url: "/app/perilaku", icon: Heart },
+      { title: "Catatan Guru", url: "/app/catatan", icon: MessageSquare },
       { title: "Laporan", url: "/app/laporan", icon: BarChart3 },
     ],
   },

@@ -31,12 +31,16 @@ function MoodPage() {
   const { session, user } = useAuth();
   const siswa = useDB((s) => s.siswa);
   const mood = useDB((s) => s.mood);
+  const kelas = useDB((s) => s.kelas);
   const patch = useDB((s) => s.patch);
   const isGuru = session?.role === "guru";
   const [selected, setSelected] = useState<MoodEmoji | null>(null);
   const [catatan, setCatatan] = useState("");
   const [jam, setJam] = useState("1");
   const [siswaId, setSiswaId] = useState("");
+
+  const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
+  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
 
   const anak = siswa.filter((s) => s.orangTuaId === user?.id).find((k) => k.id === session?.activeSiswaId);
   const focusId = isGuru ? siswaId : anak?.id;
@@ -96,7 +100,7 @@ function MoodPage() {
               <Label>Siswa</Label>
               <Select value={siswaId} onValueChange={setSiswaId}>
                 <SelectTrigger><SelectValue placeholder="Pilih siswa" /></SelectTrigger>
-                <SelectContent>{siswa.filter((s) => s.status !== "nonaktif").map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                <SelectContent>{mySiswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">

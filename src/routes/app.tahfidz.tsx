@@ -17,6 +17,7 @@ import { useDB, genId } from "@/lib/mock-store";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { toast } from "sonner";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/app/tahfidz")({
   component: TahfidzPage,
@@ -26,16 +27,22 @@ function TahfidzPage() {
   const { session, user } = useAuth();
   const tahfidz = useDB((s) => s.tahfidz);
   const siswa = useDB((s) => s.siswa);
+  const kelas = useDB((s) => s.kelas);
   const patch = useDB((s) => s.patch);
   const isGuru = session?.role === "guru";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ siswaId: "", surah: "", ayatDari: 1, ayatSampai: 1, target: "Juz 30", status: "lancar" as const, catatan: "" });
 
+  const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
+  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
+
   const target = isGuru
-    ? siswa.filter((s) => s.status !== "nonaktif")
+    ? mySiswa
     : siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").filter((s) => s.id === session?.activeSiswaId);
   const focus = isGuru ? null : target[0];
-  const list = focus ? tahfidz.filter((t) => t.siswaId === focus.id) : tahfidz;
+  const list = focus
+    ? tahfidz.filter((t) => t.siswaId === focus.id)
+    : tahfidz.filter((t) => mySiswa.some((s) => s.id === t.siswaId));
   const lancar = list.filter((t) => t.status === "lancar").length;
   const ayatTotal = list.reduce((a, b) => a + (b.ayatSampai - b.ayatDari + 1), 0);
 
@@ -46,6 +53,7 @@ function TahfidzPage() {
     patch("tahfidz", (items) => [...items, { id: genId("tf"), ...form, tanggal: new Date().toISOString(), guruId: user!.id }]);
     toast.success("Setoran tersimpan");
     setOpen(false);
+    setForm({ siswaId: "", surah: "", ayatDari: 1, ayatSampai: 1, target: "Juz 30", status: "lancar", catatan: "" });
   };
 
   return (
@@ -111,6 +119,23 @@ function TahfidzPage() {
         </div>
       )}
 
+      {chart.length > 0 && (
+        <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
+          <h3 className="mb-4 font-bold">Tren Setoran Ayat (8 Setoran Terakhir)</h3>
+          <div className="h-56 w-full">
+            <ResponsiveContainer>
+              <BarChart data={chart}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.5} />
+                <XAxis dataKey="tanggal" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                <YAxis tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
+                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-card)" }} />
+                <Bar dataKey="ayat" name="Jumlah Ayat" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {list.length === 0 ? (
         <EmptyState icon={BookMarked} title="Belum ada setoran" />
       ) : (
@@ -123,10 +148,20 @@ function TahfidzPage() {
                 <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 p-3">
                   <div>
                     <p className="font-semibold">{t.surah} <span className="text-muted-foreground">ayat {t.ayatDari}-{t.ayatSampai}</span></p>
-                    <p className="text-xs text-muted-foreground">{isGuru && `${s?.nama} • `}{format(new Date(t.tanggal), "dd MMM yyyy", { locale: idLocale })}</p>
+                    <p className="text-xs text-muted-foreground">{(isGuru || !focus) && `${s?.nama} • `}{format(new Date(t.tanggal), "dd MMM yyyy", { locale: idLocale })}</p>
                     {t.catatan && <p className="mt-1 text-xs italic text-muted-foreground">"{t.catatan}"</p>}
                   </div>
-                  <Badge variant={t.status === "lancar" ? "default" : t.status === "perlu-mengulang" ? "destructive" : "outline"}>{t.status}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={t.status === "lancar" ? "default" : t.status === "perlu-mengulang" ? "destructive" : "outline"}>{t.status}</Badge>
+                    {isGuru && (
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => {
+                        patch("tahfidz", (items) => items.filter((x) => x.id !== t.id));
+                        toast.success("Setoran tahfidz dihapus");
+                      }}>
+                        ✕
+                      </Button>
+                    )}
+                  </div>
                 </div>
               );
             })}

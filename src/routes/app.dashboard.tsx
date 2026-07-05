@@ -299,7 +299,7 @@ function GuruDashboard() {
   const mySiswa = siswa.filter((s) => myKelas.some((k) => k.id === s.kelasId));
   const tugasAktif = tugas.filter((t) => myKelas.some((k) => k.id === t.kelasId) && t.status === "aktif");
   const nilaiDraft = nilai.filter((n) => n.guruId === user?.id && n.status === "draft");
-  const moodHariIni = mood.filter((m) => m.sumber === "sekolah" && new Date(m.tanggal).toDateString() === new Date().toDateString());
+  const moodHariIni = mood.filter((m) => m.sumber === "sekolah" && mySiswa.some((s) => s.id === m.siswaId) && new Date(m.tanggal).toDateString() === new Date().toDateString());
 
   const moodDist = ["senang", "biasa", "bosan", "sedih", "marah"].map((e) => ({
     emoji: `${moodEmoji[e]} ${e}`,

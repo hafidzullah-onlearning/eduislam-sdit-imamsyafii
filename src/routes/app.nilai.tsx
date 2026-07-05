@@ -7,6 +7,7 @@ import { StatCard } from "@/components/app/common/StatCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -129,11 +130,15 @@ function GuruNilai() {
   const { user } = useAuth();
   const nilai = useDB((s) => s.nilai);
   const siswa = useDB((s) => s.siswa);
+  const kelas = useDB((s) => s.kelas);
   const mapel = useDB((s) => s.mapel);
   const patch = useDB((s) => s.patch);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"published" | "draft">("published");
   const [form, setForm] = useState({ siswaId: "", mapelId: "", jenis: "harian" as const, nilai: 0, kkm: 75, catatan: "" });
+
+  const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
+  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
 
   const list = nilai.filter((n) => n.guruId === user?.id).filter((n) => n.status === tab);
 
@@ -142,11 +147,17 @@ function GuruNilai() {
     patch("nilai", (items) => [...items, { id: genId("n"), ...form, status: "draft" as const, tanggal: new Date().toISOString(), guruId: user!.id }]);
     toast.success("Nilai tersimpan sebagai draft");
     setOpen(false);
+    setForm({ siswaId: "", mapelId: "", jenis: "harian", nilai: 0, kkm: 75, catatan: "" });
   };
 
   const publish = (id: string) => {
     patch("nilai", (items) => items.map((n) => (n.id === id ? { ...n, status: "published" as const } : n)));
     toast.success("Nilai dipublish ke orang tua");
+  };
+
+  const remove = (id: string) => {
+    patch("nilai", (items) => items.filter((n) => n.id !== id));
+    toast.success("Nilai dihapus");
   };
 
   return (
@@ -163,7 +174,7 @@ function GuruNilai() {
                 <div className="space-y-1.5"><Label>Siswa *</Label>
                   <Select value={form.siswaId} onValueChange={(v) => setForm({ ...form, siswaId: v })}>
                     <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                    <SelectContent>{siswa.filter((s) => s.status !== "nonaktif").map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                    <SelectContent>{mySiswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5"><Label>Mapel *</Label>
@@ -172,7 +183,7 @@ function GuruNilai() {
                     <SelectContent>{mapel.map((m) => <SelectItem key={m.id} value={m.id}>{m.nama}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5"><Label>Jenis</Label>
                     <Select value={form.jenis} onValueChange={(v: any) => setForm({ ...form, jenis: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -185,6 +196,11 @@ function GuruNilai() {
                     </Select>
                   </div>
                   <div className="space-y-1.5"><Label>Nilai</Label><Input type="number" min={0} max={100} value={form.nilai} onChange={(e) => setForm({ ...form, nilai: +e.target.value })} /></div>
+                  <div className="space-y-1.5"><Label>KKM</Label><Input type="number" min={0} max={100} value={form.kkm} onChange={(e) => setForm({ ...form, kkm: +e.target.value })} /></div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Catatan (opsional)</Label>
+                  <Textarea placeholder="Umpan balik atau catatan evaluasi siswa..." value={form.catatan} onChange={(e) => setForm({ ...form, catatan: e.target.value })} />
                 </div>
               </div>
               <DialogFooter>
@@ -213,11 +229,15 @@ function GuruNilai() {
               <div key={n.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-soft">
                 <div>
                   <p className="font-semibold">{s?.nama}</p>
-                  <p className="text-xs text-muted-foreground">{m?.nama} • {n.jenis} • {format(new Date(n.tanggal), "dd MMM", { locale: idLocale })}</p>
+                  <p className="text-xs text-muted-foreground">{m?.nama} • {n.jenis} • KKM {n.kkm} • {format(new Date(n.tanggal), "dd MMM yyyy", { locale: idLocale })}</p>
+                  {n.catatan && <p className="mt-1 text-xs italic text-muted-foreground">"{n.catatan}"</p>}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl font-extrabold text-primary">{n.nilai}</span>
                   {n.status === "draft" && <Button size="sm" onClick={() => publish(n.id)}>Publish</Button>}
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(n.id)}>
+                    ✕
+                  </Button>
                 </div>
               </div>
             );

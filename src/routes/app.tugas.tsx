@@ -161,11 +161,14 @@ function GuruTugas() {
   const tugas = useDB((s) => s.tugas);
   const kelas = useDB((s) => s.kelas);
   const mapel = useDB((s) => s.mapel);
+  const siswa = useDB((s) => s.siswa);
   const submissions = useDB((s) => s.submissions);
   const patch = useDB((s) => s.patch);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [form, setForm] = useState({ judul: "", deskripsi: "", mapelId: "", kelasId: "", deadline: "", linkUrl: "" });
+  const [inspectTugasId, setInspectTugasId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, string>>({});
 
   const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
   const list = tugas.filter((t) => myKelas.some((k) => k.id === t.kelasId)).filter((t) => t.judul.toLowerCase().includes(q.toLowerCase()));
@@ -228,6 +231,7 @@ function GuruTugas() {
       ) : (
         <div className="space-y-3">
           {list.map((t) => {
+            const classStudents = siswa.filter((s) => s.kelasId === t.kelasId && s.status !== "nonaktif");
             const submitted = submissions.filter((s) => s.tugasId === t.id);
             const done = submitted.filter((s) => s.status === "selesai").length;
             const k = kelas.find((x) => x.id === t.kelasId);
@@ -243,10 +247,92 @@ function GuruTugas() {
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{t.deskripsi}</p>
                     <p className="mt-2 text-xs text-muted-foreground">Deadline {format(new Date(t.deadline), "dd MMM yyyy HH:mm", { locale: idLocale })}</p>
-                    <p className="mt-2 text-xs font-semibold text-primary">{done}/{submitted.length || "0"} siswa selesai</p>
+                    <p className="mt-2 text-xs font-semibold text-primary">{done}/{classStudents.length} siswa selesai</p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => { patch("tugas", (items) => items.filter((x) => x.id !== t.id)); toast.success("Tugas dihapus"); }}>Hapus</Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant={inspectTugasId === t.id ? "default" : "outline"} onClick={() => setInspectTugasId(inspectTugasId === t.id ? null : t.id)}>
+                      {inspectTugasId === t.id ? "Tutup" : "Periksa"}
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { patch("tugas", (items) => items.filter((x) => x.id !== t.id)); toast.success("Tugas dihapus"); }}>Hapus</Button>
+                  </div>
                 </div>
+
+                {inspectTugasId === t.id && (
+                  <div className="mt-4 border-t border-border/40 pt-4 space-y-3">
+                    <h4 className="font-bold text-sm text-foreground">Status Pengumpulan Siswa:</h4>
+                    {classStudents.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Tidak ada siswa aktif di kelas ini.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {classStudents.map((st) => {
+                          const sub = submissions.find((s) => s.tugasId === t.id && s.siswaId === st.id);
+                          const status = sub?.status ?? "belum";
+                          const stFeedback = feedback[st.id] ?? sub?.komentarGuru ?? "";
+                          return (
+                            <div key={st.id} className="flex flex-col gap-2 rounded-xl border border-border/60 p-3 bg-surface-soft/20">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="font-semibold text-sm">{st.nama}</span>
+                                  {sub?.updatedAt && (
+                                    <span className="text-[10px] text-muted-foreground ml-2">
+                                      {formatDistanceToNow(new Date(sub.updatedAt), { locale: idLocale, addSuffix: true })}
+                                    </span>
+                                  )}
+                                </div>
+                                <Badge variant={status === "selesai" ? "default" : status === "dikerjakan" ? "secondary" : "outline"}>
+                                  {status === "selesai" ? "Selesai" : status === "dikerjakan" ? "Perlu Diperiksa" : "Belum Mengerjakan"}
+                                </Badge>
+                              </div>
+                              {sub?.buktiUrl && (
+                                <div className="text-xs">
+                                  <span className="font-semibold">Bukti: </span>
+                                  <a href={sub.buktiUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline font-semibold break-all">
+                                    {sub.buktiUrl} ↗
+                                  </a>
+                                </div>
+                              )}
+                              {sub?.komentarOrtu && (
+                                <p className="text-xs italic text-muted-foreground">"Ortu: {sub.komentarOrtu}"</p>
+                              )}
+                              <div className="mt-1 flex gap-2 items-center">
+                                <Input
+                                  placeholder="Komentar guru..."
+                                  value={stFeedback}
+                                  onChange={(e) => setFeedback({ ...feedback, [st.id]: e.target.value })}
+                                  className="h-8 text-xs max-w-xs bg-card"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs shrink-0"
+                                  onClick={() => {
+                                    if (sub) {
+                                      patch("submissions", (items) => items.map((x) => x.id === sub.id ? { ...x, status: "selesai" as const, komentarGuru: stFeedback, updatedAt: new Date().toISOString() } : x));
+                                    } else {
+                                      patch("submissions", (items) => [
+                                        ...items,
+                                        {
+                                          id: genId("sub"),
+                                          tugasId: t.id,
+                                          siswaId: st.id,
+                                          status: "selesai" as const,
+                                          komentarGuru: stFeedback,
+                                          updatedAt: new Date().toISOString()
+                                        }
+                                      ]);
+                                    }
+                                    toast.success(`Tugas ${st.nama} disetujui selesai`);
+                                  }}
+                                >
+                                  Selesai
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

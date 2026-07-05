@@ -21,15 +21,21 @@ function PerilakuPage() {
   const { user } = useAuth();
   const perilaku = useDB((s) => s.perilaku);
   const siswa = useDB((s) => s.siswa);
+  const kelas = useDB((s) => s.kelas);
   const patch = useDB((s) => s.patch);
   const [open, setOpen] = useState(false);
   const [f, setF] = useState({ siswaId: "", aspek: "karakter-islami" as const, skor: 4, catatan: "" });
+
+  const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
+  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
+  const filteredPerilaku = perilaku.filter((p) => mySiswa.some((s) => s.id === p.siswaId));
 
   const save = () => {
     if (!f.siswaId) return toast.error("Pilih siswa");
     patch("perilaku", (items) => [...items, { id: genId("p"), ...f, tanggal: new Date().toISOString(), guruId: user!.id }]);
     toast.success("Penilaian tersimpan");
     setOpen(false);
+    setF({ siswaId: "", aspek: "karakter-islami", skor: 4, catatan: "" });
   };
   return (
     <div className="space-y-6">
@@ -42,7 +48,7 @@ function PerilakuPage() {
               <div className="space-y-1.5"><Label>Siswa</Label>
                 <Select value={f.siswaId} onValueChange={(v) => setF({ ...f, siswaId: v })}>
                   <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                  <SelectContent>{siswa.filter((s) => s.status !== "nonaktif").map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                  <SelectContent>{mySiswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5"><Label>Aspek</Label>
@@ -68,11 +74,11 @@ function PerilakuPage() {
           </DialogContent>
         </Dialog>
       } />
-      {perilaku.length === 0 ? (
+      {filteredPerilaku.length === 0 ? (
         <EmptyState icon={Heart} title="Belum ada penilaian" />
       ) : (
         <div className="space-y-2">
-          {perilaku.map((p) => {
+          {filteredPerilaku.map((p) => {
             const s = siswa.find((x) => x.id === p.siswaId);
             return (
               <div key={p.id} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-soft">
@@ -81,7 +87,15 @@ function PerilakuPage() {
                   <p className="text-xs text-muted-foreground">{format(new Date(p.tanggal), "dd MMM yyyy", { locale: idLocale })}</p>
                   {p.catatan && <p className="mt-1 text-xs italic text-muted-foreground">"{p.catatan}"</p>}
                 </div>
-                <div className="flex gap-0.5">{[1,2,3,4,5].map((n) => <span key={n} className={n <= p.skor ? "text-gold" : "text-border"}>★</span>)}</div>
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-0.5">{[1,2,3,4,5].map((n) => <span key={n} className={n <= p.skor ? "text-gold" : "text-border"}>★</span>)}</div>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => {
+                    patch("perilaku", (items) => items.filter((x) => x.id !== p.id));
+                    toast.success("Penilaian perilaku dihapus");
+                  }}>
+                    ✕
+                  </Button>
+                </div>
               </div>
             );
           })}

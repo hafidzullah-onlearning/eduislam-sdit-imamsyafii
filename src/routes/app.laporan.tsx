@@ -27,7 +27,7 @@ function LaporanPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Siswa aktif" value={mySiswa.length} icon={Users} />
         <StatCard label="Rata-rata kelas" value={rata} icon={Award} tone="success" />
-        <StatCard label="Nilai terpublish" value={nilai.filter((n) => n.status === "published").length} icon={TrendingUp} tone="info" />
+        <StatCard label="Nilai terpublish" value={nilai.filter((n) => n.status === "published" && mySiswa.some((s) => s.id === n.siswaId)).length} icon={TrendingUp} tone="info" />
       </div>
       <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
         <h3 className="mb-4 font-bold">Rata-rata Nilai per Siswa</h3>
