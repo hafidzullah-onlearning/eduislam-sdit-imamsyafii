@@ -192,11 +192,18 @@ function MateriPage() {
 
     try {
       const response = await generateMateriInstructions({
-        judul: form.judul,
-        mapelName,
-        kelasName,
-        linkUrl: form.linkUrl,
+        data: {
+          judul: form.judul,
+          mapelName,
+          kelasName,
+          linkUrl: form.linkUrl,
+        }
       });
+      
+      if (!response || !response.text) {
+        throw new Error("Received empty or invalid response from AI server function");
+      }
+
       setForm((prev) => ({ ...prev, deskripsi: response.text }));
       toast.success("Petunjuk belajar berhasil dibuat oleh AI!");
     } catch (error) {
