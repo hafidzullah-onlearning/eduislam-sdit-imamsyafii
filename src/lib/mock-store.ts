@@ -154,27 +154,29 @@ export const useDB = create<Store>()(
               const added = newItems.filter((item) => !oldItems.some((old) => old.id === item.id));
               for (const item of added) {
                 const userId = toUuid(item.id);
-                // Insert into profiles
-                const { error: pErr } = await supabase.from("profiles").insert([{
-                  id: userId,
-                  nama: item.name,
-                  email: item.email || null,
-                  phone: item.phone || null,
-                  avatar_url: item.avatar || null
-                }]);
-                if (pErr) {
-                  console.error("Error inserting profile:", pErr);
-                  toast.error(`Gagal menyimpan profil user ke database: ${pErr.message}`);
-                }
+                const placeholderEmail = item.email || `${userId.slice(0, 8)}@sdit-placeholder.sch.id`;
+                
+                // Call public.create_user_admin RPC to create user in auth.users & public.profiles safely
+                const { error: rpcErr } = await supabase.rpc("create_user_admin", {
+                  p_id: userId,
+                  p_email: placeholderEmail,
+                  p_password: "EduIslamDefaultPassword123!",
+                  p_nama: item.name,
+                  p_role: item.role
+                });
 
-                // Insert into user_roles
-                const { error: rErr } = await supabase.from("user_roles").insert([{
-                  user_id: userId,
-                  role: item.role
-                }]);
-                if (rErr) {
-                  console.error("Error inserting user role:", rErr);
-                  toast.error(`Gagal menyimpan peran user ke database: ${rErr.message}`);
+                if (rpcErr) {
+                  console.error("Error calling create_user_admin RPC:", rpcErr);
+                  toast.error(`Gagal menyimpan user baru ke database: ${rpcErr.message}`);
+                } else {
+                  // RPC succeeded. Safely update other profile fields (phone, avatar_url)
+                  if (item.phone || item.avatar) {
+                    const { error: pErr } = await supabase.from("profiles").update({
+                      phone: item.phone || null,
+                      avatar_url: item.avatar || null
+                    }).eq("id", userId);
+                    if (pErr) console.error("Error updating phone/avatar for new user:", pErr);
+                  }
                 }
               }
 
@@ -211,15 +213,12 @@ export const useDB = create<Store>()(
               const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
               for (const item of deleted) {
                 const userId = toUuid(item.id);
-                const { error: rErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
-                if (rErr) {
-                  console.error("Error deleting user role:", rErr);
-                  toast.error(`Gagal menghapus peran user: ${rErr.message}`);
-                }
-                const { error: pErr } = await supabase.from("profiles").delete().eq("id", userId);
-                if (pErr) {
-                  console.error("Error deleting profile:", pErr);
-                  toast.error(`Gagal menghapus profil user: ${pErr.message}`);
+                const { error: rpcErr } = await supabase.rpc("delete_user_admin", {
+                  p_id: userId
+                });
+                if (rpcErr) {
+                  console.error("Error calling delete_user_admin RPC:", rpcErr);
+                  toast.error(`Gagal menghapus user dari database: ${rpcErr.message}`);
                 }
               }
             } catch (e) {
