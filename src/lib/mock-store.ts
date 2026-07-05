@@ -96,6 +96,34 @@ export function snakeToCamel(obj: any): any {
   return obj;
 }
 
+export function convertIdsToUuid(obj: any): any {
+  if (Array.isArray(obj)) return obj.map(convertIdsToUuid);
+  if (obj !== null && typeof obj === "object") {
+    const res: any = {};
+    for (const k of Object.keys(obj)) {
+      const val = obj[k];
+      if (typeof val === "string") {
+        const keyLower = k.toLowerCase();
+        if (
+          keyLower === "id" ||
+          keyLower.endsWith("id") ||
+          keyLower.endsWith("_id") ||
+          keyLower === "createdby" ||
+          keyLower === "created_by"
+        ) {
+          res[k] = toUuid(val);
+        } else {
+          res[k] = val;
+        }
+      } else {
+        res[k] = convertIdsToUuid(val);
+      }
+    }
+    return res;
+  }
+  return obj;
+}
+
 interface Store extends SeedShape {
   reset: () => void;
   patch: <K extends keyof SeedShape>(key: K, updater: (items: SeedShape[K]) => SeedShape[K]) => void;
@@ -108,7 +136,9 @@ export const useDB = create<Store>()(
       reset: () => set({ ...seed }),
       patch: (key, updater) => {
         const oldItems = useDB.getState()[key] as any[];
-        const newItems = updater(oldItems as any) as any[];
+        let newItems = updater(oldItems as any) as any[];
+
+        newItems = convertIdsToUuid(newItems);
 
         // Update local Zustand state immediately for fast UI feedback
         set((state) => ({ ...state, [key]: newItems }));
