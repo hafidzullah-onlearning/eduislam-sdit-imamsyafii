@@ -20,7 +20,9 @@ function KelasPage() {
             <div key={k.id} className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Kelas</p>
               <h3 className="mt-1 text-2xl font-extrabold">{k.nama}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Tingkat {k.tingkat} • {k.tahunAjaran}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tingkat {k.tingkat} • {k.tahunAjaran}
+              </p>
               <p className="mt-3 text-sm font-semibold text-primary">{total} siswa</p>
             </div>
           );

@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/layout/AppSidebar";
 import { Topbar } from "@/components/app/layout/Topbar";
 import { useAuth } from "@/lib/auth/mock-auth";
+import { useLazyLoadTables } from "@/lib/mock-store";
 
 const PUBLIC_APP_ROUTES = ["/app/login", "/app/forgot-password", "/app/reset-password"];
 
@@ -17,6 +18,10 @@ function AppLayout() {
   const { session, ready } = useAuth();
   const isPublic = PUBLIC_APP_ROUTES.includes(pathname);
 
+  // Lazy load basic global tables needed everywhere (siswa & kelas)
+  const shouldLoad = !isPublic && !!session;
+  const dbLoading = useLazyLoadTables(shouldLoad ? ["siswa", "kelas"] : []);
+
   useEffect(() => {
     if (!ready) return;
     if (!session && !isPublic) {
@@ -28,7 +33,7 @@ function AppLayout() {
     }
   }, [ready, session, isPublic, pathname, router]);
 
-  if (!ready) {
+  if (!ready || dbLoading) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

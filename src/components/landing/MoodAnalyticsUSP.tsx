@@ -16,14 +16,20 @@ const EMOJIS = [
 
 export function MoodAnalyticsUSP() {
   return (
-    <section id="mood" className="relative overflow-hidden bg-gradient-premium py-24 text-primary-foreground lg:py-32">
+    <section
+      id="mood"
+      className="relative overflow-hidden bg-gradient-premium py-24 text-primary-foreground lg:py-32"
+    >
       {/* Decorative orbs */}
       <div className="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-mint/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{
-        backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-        backgroundSize: "32px 32px",
-      }} />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+          backgroundSize: "32px 32px",
+        }}
+      />
 
       <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
@@ -39,10 +45,9 @@ export function MoodAnalyticsUSP() {
             </span>
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-primary-foreground/80">
-            Deteksi kejenuhan belajar lebih awal sebelum memengaruhi performa
-            akademik dan hafalan Qur'an. Data emosi dikumpulkan setiap hari oleh
-            siswa, dianalisis, dan diterjemahkan menjadi insight yang dapat
-            ditindaklanjuti.
+            Deteksi kejenuhan belajar lebih awal sebelum memengaruhi performa akademik dan hafalan
+            Qur'an. Data emosi dikumpulkan setiap hari oleh siswa, dianalisis, dan diterjemahkan
+            menjadi insight yang dapat ditindaklanjuti.
           </p>
         </div>
 
@@ -97,8 +102,8 @@ export function MoodAnalyticsUSP() {
                 <div>
                   <p className="text-sm font-semibold">Insight Otomatis</p>
                   <p className="mt-1 text-sm leading-[1.7] text-primary-foreground/80">
-                    Mood "Bosan" naik 14% setiap Kamis sore — pertimbangkan jeda
-                    aktivitas atau variasi metode pada jadwal tersebut.
+                    Mood "Bosan" naik 14% setiap Kamis sore — pertimbangkan jeda aktivitas atau
+                    variasi metode pada jadwal tersebut.
                   </p>
                 </div>
               </div>
@@ -111,8 +116,8 @@ export function MoodAnalyticsUSP() {
                 <div>
                   <p className="text-sm font-semibold">Deteksi Dini</p>
                   <p className="mt-1 text-sm leading-[1.7] text-primary-foreground/80">
-                    3 siswa menunjukkan pola kelelahan beruntun. Sistem mengusulkan
-                    sesi konseling singkat dengan wali kelas minggu ini.
+                    3 siswa menunjukkan pola kelelahan beruntun. Sistem mengusulkan sesi konseling
+                    singkat dengan wali kelas minggu ini.
                   </p>
                 </div>
               </div>

@@ -40,8 +40,7 @@ export function FAQ() {
             Pertanyaan yang sering ditanyakan.
           </h2>
           <p className="mt-5 text-lg text-muted-foreground">
-            Tidak menemukan jawaban yang Anda cari? Tim kami siap membantu lewat
-            konsultasi gratis.
+            Tidak menemukan jawaban yang Anda cari? Tim kami siap membantu lewat konsultasi gratis.
           </p>
         </div>
 

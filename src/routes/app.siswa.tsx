@@ -3,7 +3,14 @@ import { useState } from "react";
 import { PageHeader } from "@/components/app/common/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAuth } from "@/lib/auth/mock-auth";
 import { useDB } from "@/lib/mock-store";
 
@@ -22,11 +29,21 @@ function SiswaPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Siswa" description={`${list.length} siswa aktif di kelas Anda.`} />
-      <Input placeholder="Cari nama atau NIS…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-md" />
+      <Input
+        placeholder="Cari nama atau NIS…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="max-w-md"
+      />
       <div className="rounded-2xl border border-border/60 bg-card shadow-soft">
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Nama</TableHead><TableHead>NIS</TableHead><TableHead>Kelas</TableHead><TableHead>L/P</TableHead></TableRow>
+            <TableRow>
+              <TableHead>Nama</TableHead>
+              <TableHead>NIS</TableHead>
+              <TableHead>Kelas</TableHead>
+              <TableHead>L/P</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {list.map((s) => {
@@ -35,7 +52,9 @@ function SiswaPage() {
                 <TableRow key={s.id}>
                   <TableCell className="font-semibold">{s.nama}</TableCell>
                   <TableCell>{s.nis}</TableCell>
-                  <TableCell><Badge variant="outline">{k?.nama}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{k?.nama}</Badge>
+                  </TableCell>
                   <TableCell>{s.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</TableCell>
                 </TableRow>
               );

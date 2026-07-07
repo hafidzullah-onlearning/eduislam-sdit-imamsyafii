@@ -1,10 +1,9 @@
-
-
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { seed, type SeedShape } from "@/mocks/seed";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
 // Mappings between Zustand store keys and Supabase table names
 export const tableMap: Record<string, string> = {
@@ -130,7 +129,10 @@ export function convertIdsToUuid(obj: any): any {
 
 interface Store extends SeedShape {
   reset: () => void;
-  patch: <K extends keyof SeedShape>(key: K, updater: (items: SeedShape[K]) => SeedShape[K]) => void;
+  patch: <K extends keyof SeedShape>(
+    key: K,
+    updater: (items: SeedShape[K]) => SeedShape[K],
+  ) => void;
 }
 
 export const useDB = create<Store>()(
@@ -159,15 +161,16 @@ export const useDB = create<Store>()(
               const added = newItems.filter((item) => !oldItems.some((old) => old.id === item.id));
               for (const item of added) {
                 const userId = toUuid(item.id)!;
-                const placeholderEmail = item.email || `${userId.slice(0, 8)}@sdit-placeholder.sch.id`;
-                
+                const placeholderEmail =
+                  item.email || `${userId.slice(0, 8)}@sdit-placeholder.sch.id`;
+
                 // Call public.create_user_admin RPC to create user in auth.users & public.profiles safely
                 const { error: rpcErr } = await (supabase as any).rpc("create_user_admin", {
                   p_id: userId,
                   p_email: placeholderEmail,
                   p_password: "EduIslamDefaultPassword123!",
                   p_nama: item.name,
-                  p_role: item.role
+                  p_role: item.role,
                 });
 
                 if (rpcErr) {
@@ -178,10 +181,13 @@ export const useDB = create<Store>()(
                 } else {
                   // RPC succeeded. Safely update other profile fields (phone, avatar_url)
                   if (item.phone || item.avatar) {
-                    const { error: pErr } = await supabase.from("profiles").update({
-                      phone: item.phone || null,
-                      avatar_url: item.avatar || null
-                    }).eq("id", userId);
+                    const { error: pErr } = await supabase
+                      .from("profiles")
+                      .update({
+                        phone: item.phone || null,
+                        avatar_url: item.avatar || null,
+                      })
+                      .eq("id", userId);
                     if (pErr) {
                       console.error("Error updating phone/avatar for new user:", pErr);
                       rollback();
@@ -199,12 +205,15 @@ export const useDB = create<Store>()(
               });
               for (const item of updated) {
                 const userId = toUuid(item.id)!;
-                const { error: pErr } = await supabase.from("profiles").update({
-                  nama: item.name,
-                  email: item.email || null,
-                  phone: item.phone || null,
-                  avatar_url: item.avatar || null
-                }).eq("id", userId);
+                const { error: pErr } = await supabase
+                  .from("profiles")
+                  .update({
+                    nama: item.name,
+                    email: item.email || null,
+                    phone: item.phone || null,
+                    avatar_url: item.avatar || null,
+                  })
+                  .eq("id", userId);
                 if (pErr) {
                   console.error("Error updating profile:", pErr);
                   toast.error(`Gagal memperbarui profil user di database: ${pErr.message}`);
@@ -212,10 +221,13 @@ export const useDB = create<Store>()(
                   return;
                 }
 
-                const { error: rErr } = await supabase.from("user_roles").upsert({
-                  user_id: userId,
-                  role: item.role
-                }, { onConflict: "user_id,role" });
+                const { error: rErr } = await supabase.from("user_roles").upsert(
+                  {
+                    user_id: userId,
+                    role: item.role,
+                  },
+                  { onConflict: "user_id,role" },
+                );
                 if (rErr) {
                   console.error("Error upserting user role:", rErr);
                   toast.error(`Gagal memperbarui peran user di database: ${rErr.message}`);
@@ -229,7 +241,7 @@ export const useDB = create<Store>()(
               for (const item of deleted) {
                 const userId = toUuid(item.id)!;
                 const { error: rpcErr } = await (supabase as any).rpc("delete_user_admin", {
-                  p_id: userId
+                  p_id: userId,
                 });
                 if (rpcErr) {
                   console.error("Error calling delete_user_admin RPC:", rpcErr);
@@ -253,19 +265,22 @@ export const useDB = create<Store>()(
           try {
             // 1. Detect Inserts
             const added = newItems.filter((item) => !oldItems.some((old) => old.id === item.id));
-            for (const item of added) {
-              const mapped = camelToSnake(item);
-              if (key === "kelas") {
-                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran)!;
-                delete mapped.tahun_ajaran;
-              }
-              if (key === "sppTarif") {
-                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId)!;
-              }
-              if (key === "siswa") {
-                delete mapped.status;
-              }
-              const { error } = await supabase.from(tableName as any).insert([mapped]);
+            if (added.length > 0) {
+              const mappedRows = added.map((item) => {
+                const mapped = camelToSnake(item);
+                if (key === "kelas") {
+                  mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran)!;
+                  delete mapped.tahun_ajaran;
+                }
+                if (key === "sppTarif") {
+                  mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId)!;
+                }
+                if (key === "siswa") {
+                  delete mapped.status;
+                }
+                return mapped;
+              });
+              const { error } = await supabase.from(tableName as any).insert(mappedRows);
               if (error) {
                 console.error(`Error inserting to ${tableName}:`, error);
                 toast.error(`Gagal menyimpan ke tabel ${tableName}: ${error.message}`);
@@ -292,7 +307,10 @@ export const useDB = create<Store>()(
               if (key === "siswa") {
                 delete mapped.status;
               }
-              const { error } = await supabase.from(tableName as any).update(mapped).eq("id", toUuid(item.id)!);
+              const { error } = await supabase
+                .from(tableName as any)
+                .update(mapped)
+                .eq("id", toUuid(item.id)!);
               if (error) {
                 console.error(`Error updating in ${tableName}:`, error);
                 toast.error(`Gagal memperbarui tabel ${tableName}: ${error.message}`);
@@ -304,7 +322,10 @@ export const useDB = create<Store>()(
             // 3. Detect Deletions
             const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
             for (const item of deleted) {
-              const { error } = await supabase.from(tableName as any).delete().eq("id", toUuid(item.id)!);
+              const { error } = await supabase
+                .from(tableName as any)
+                .delete()
+                .eq("id", toUuid(item.id)!);
               if (error) {
                 console.error(`Error deleting from ${tableName}:`, error);
                 toast.error(`Gagal menghapus dari tabel ${tableName}: ${error.message}`);
@@ -322,7 +343,9 @@ export const useDB = create<Store>()(
     }),
     {
       name: "eduislam-mock-db-v1",
-      storage: createJSONStorage(() => (typeof window !== "undefined" ? localStorage : (undefined as unknown as Storage))),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : (undefined as unknown as Storage),
+      ),
     },
   ),
 );
@@ -332,272 +355,207 @@ export function genId(prefix = "id") {
 }
 
 let tahunAjaranCache: { id: string; nama: string }[] = [];
-let activeSubscriptions: any[] = [];
+const loadedTables: Record<string, boolean> = {};
+const activeSubscriptions: Record<string, any> = {};
 
-// Map seed item references safely to prevent foreign key errors
-function mapSeedItem(item: any, realUserId: string, realUserEmail: string): any {
-  let loggedInSeedId = "u-ortu-1";
-  const emailLower = (realUserEmail || "").toLowerCase().trim();
-  if (emailLower === "aisyah@sdit.sch.id") loggedInSeedId = "u-guru-1";
-  else if (emailLower === "ahmad@sdit.sch.id") loggedInSeedId = "u-guru-2";
-  else if (emailLower === "ridho@keluarga.id") loggedInSeedId = "u-ortu-1";
-  else if (emailLower === "salma@keluarga.id") loggedInSeedId = "u-ortu-2";
-  else if (emailLower === "admin@sdit.sch.id" || emailLower === "hafidzullah.a@gmail.com") loggedInSeedId = "u-admin-1";
+// Helper to subscribe to individual tables in realtime
+export function subscribeToTableRealtime(key: string) {
+  if (activeSubscriptions[key]) return;
 
-  const mapped = JSON.parse(JSON.stringify(item));
-
-  const mapValue = (val: any, key?: string): any => {
-    if (typeof val === "string") {
-      if (val === loggedInSeedId) {
-        return realUserId;
-      }
-      if (val.startsWith("u-")) {
-        return null; // Set other users to null to prevent foreign key constraint fails
-      }
-      if (key) {
-        const keyLower = key.toLowerCase();
-        if (
-          keyLower === "id" ||
-          keyLower.endsWith("id") ||
-          keyLower.endsWith("_id") ||
-          keyLower === "createdby" ||
-          keyLower === "created_by"
-        ) {
-          return toUuid(val);
-        }
-      }
-      return val;
-    }
-    if (Array.isArray(val)) {
-      return val.map((x) => mapValue(x, key));
-    }
-    if (val !== null && typeof val === "object") {
-      const res: any = {};
-      for (const k of Object.keys(val)) {
-        res[k] = mapValue(val[k], k);
-      }
-      return res;
-    }
-    return val;
-  };
-
-  return mapValue(mapped);
-}
-
-// Seed live Supabase database with converted mock records
-async function seedSupabaseDatabase(realUserId: string, realUserEmail: string) {
-  console.log("[Supabase] Seeding database with converted mock records...");
-  try {
-    const mapAndConvert = (arr: any[], key: string) => {
-      return arr.map((item) => {
-        const mapped = mapSeedItem(item, realUserId, realUserEmail);
-        const dbObj = camelToSnake(mapped);
-        if (key === "kelas") {
-          dbObj.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
-          delete dbObj.tahun_ajaran;
-        }
-        if (key === "sppTarif") {
-          dbObj.tahun_ajaran_id = toUuid(item.tahunAjaranId);
-        }
-        if (key === "notifikasi") {
-          dbObj.user_id = realUserId;
-        }
-        return dbObj;
-      });
-    };
-
-    await supabase.from("tahun_ajaran").upsert(mapAndConvert(seed.tahunAjaran, "tahunAjaran"));
-    await supabase.from("spp_tarif").upsert(mapAndConvert(seed.sppTarif, "sppTarif"));
-    await supabase.from("mapel").upsert(mapAndConvert(seed.mapel, "mapel"));
-    await supabase.from("kelas").upsert(mapAndConvert(seed.kelas, "kelas"));
-    await supabase.from("siswa").upsert(mapAndConvert(seed.siswa, "siswa"));
-    await supabase.from("tugas").upsert(mapAndConvert(seed.tugas, "tugas"));
-    await supabase.from("tugas_submission").upsert(mapAndConvert(seed.submissions, "submissions"));
-    await supabase.from("tahfidz").upsert(mapAndConvert(seed.tahfidz, "tahfidz"));
-    await supabase.from("nilai").upsert(mapAndConvert(seed.nilai, "nilai"));
-    await supabase.from("mood").upsert(mapAndConvert(seed.mood, "mood"));
-    await supabase.from("perilaku").upsert(mapAndConvert(seed.perilaku, "perilaku"));
-    await supabase.from("invoice").upsert(mapAndConvert(seed.invoice, "invoice"));
-    await supabase.from("notifikasi").upsert(mapAndConvert(seed.notifikasi, "notifikasi"));
-    await supabase.from("pengumuman").upsert(mapAndConvert(seed.pengumuman, "pengumuman"));
-    await supabase.from("catatan_guru").upsert(mapAndConvert(seed.catatan, "catatan"));
-    await supabase.from("audit_log").upsert(mapAndConvert(seed.audit, "audit"));
-
-    console.log("[Supabase] Database seeding completed successfully.");
-  } catch (e) {
-    console.error("[Supabase] Seeding error:", e);
-  }
-}
-
-// Load all tables from Supabase into Zustand store
-export async function loadAllFromSupabase(realUserId: string, realUserEmail: string) {
-  console.log("[Supabase] Fetching database state...");
-
-  // Cache tahun_ajaran records for kelas mapper
-  const { data: taData } = await supabase.from("tahun_ajaran").select("id, nama");
-  tahunAjaranCache = taData || [];
-
-  // Check if siswa table is empty; if so, seed the database first
-  const { count } = await supabase.from("siswa").select("*", { count: "exact", head: true });
-  if (count === 0 || count === null) {
-    await seedSupabaseDatabase(realUserId, realUserEmail);
-  }
-
-  // Fetch all tables in parallel
-  const [
-    { data: profiles },
-    { data: roles },
-    { data: siswa },
-    { data: kelas },
-    { data: mapel },
-    { data: tugas },
-    { data: submissions },
-    { data: tahfidz },
-    { data: nilai },
-    { data: mood },
-    { data: perilaku },
-    { data: invoice },
-    { data: notifikasi },
-    { data: pengumuman },
-    { data: catatan },
-    { data: audit },
-    { data: tahunAjaran },
-    { data: sppTarif },
-    { data: materi },
-  ] = await Promise.all([
-    supabase.from("profiles").select("*"),
-    supabase.from("user_roles").select("*"),
-    supabase.from("siswa").select("*"),
-    supabase.from("kelas").select("*, tahun_ajaran(id, nama)"),
-    supabase.from("mapel").select("*"),
-    supabase.from("tugas").select("*"),
-    supabase.from("tugas_submission").select("*"),
-    supabase.from("tahfidz").select("*"),
-    supabase.from("nilai").select("*"),
-    supabase.from("mood").select("*"),
-    supabase.from("perilaku").select("*"),
-    supabase.from("invoice").select("*"),
-    supabase.from("notifikasi").select("*").order("tanggal", { ascending: false }).limit(50),
-    supabase.from("pengumuman").select("*"),
-    supabase.from("catatan_guru").select("*"),
-    supabase.from("audit_log").select("*").order("tanggal", { ascending: false }).limit(50),
-    supabase.from("tahun_ajaran").select("*"),
-    supabase.from("spp_tarif").select("*"),
-    supabase.from("materi" as any).select("*"),
-  ]);
-
-  // Map profiles and roles to users
-  const users = (profiles || []).map((p) => {
-    const rolePriority = ["admin", "guru", "ortu"];
-    const uRoles = roles?.filter((r) => r.user_id === p.id) || [];
-    const role = rolePriority.find((r) => uRoles.some((x) => x.role === r)) ?? "ortu";
-    return {
-      id: p.id,
-      name: p.nama,
-      email: p.email || "",
-      role: role as any,
-      phone: p.phone || undefined,
-      avatar: p.avatar_url || undefined,
-    };
-  });
-
-  // Hydrate the Zustand store
-  useDB.setState({
-    users,
-    siswa: (siswa || []).map((s) => ({
-      ...snakeToCamel(s),
-      status: (s as any).status || "aktif",
-    })),
-    kelas: (kelas || []).map((c) => ({
-      id: c.id,
-      nama: c.nama,
-      tingkat: c.tingkat,
-      waliKelasId: c.wali_kelas_id || "",
-      tahunAjaran: c.tahun_ajaran?.nama || "2025/2026",
-    })),
-    mapel: snakeToCamel(mapel || []),
-    tugas: snakeToCamel(tugas || []),
-    submissions: snakeToCamel(submissions || []),
-    tahfidz: snakeToCamel(tahfidz || []),
-    nilai: snakeToCamel(nilai || []),
-    mood: snakeToCamel(mood || []),
-    perilaku: snakeToCamel(perilaku || []),
-    invoice: snakeToCamel(invoice || []),
-    notifikasi: snakeToCamel(notifikasi || []),
-    pengumuman: snakeToCamel(pengumuman || []),
-    catatan: snakeToCamel(catatan || []),
-    audit: snakeToCamel(audit || []),
-    tahunAjaran: snakeToCamel(tahunAjaran || []),
-    sppTarif: snakeToCamel(sppTarif || []),
-    materi: snakeToCamel(materi || []),
-  });
-
-  console.log("[Supabase] Zustand store successfully hydrated from database.");
-}
-
-// Subcribe to all Supabase channels for live real-time synchronization
-export function subscribeToAllRealtime() {
-  unsubscribeFromAllRealtime();
-  console.log("[Supabase] Subscribing to real-time table replication...");
-
-  const tables = Object.keys(tableMap);
-
-  for (const key of tables) {
-    const tableName = tableMap[key];
-    const channel = supabase
-      .channel(`rt-${tableName}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: tableName }, (payload: any) => {
-        const { eventType, new: newRow, old: oldRow } = payload;
-        const camelNew = snakeToCamel(newRow);
-        const camelOld = snakeToCamel(oldRow);
-
-        const currentState = useDB.getState();
-        const items = [...((currentState[key as keyof SeedShape] || []) as any[])];
-
-        if (eventType === "INSERT") {
-          if (!items.some((item) => item.id === camelNew.id)) {
-            if (key === "kelas") {
-              const ta = tahunAjaranCache.find((x) => x.id === camelNew.tahunAjaranId);
-              camelNew.tahunAjaran = ta ? ta.nama : "2025/2026";
-              delete camelNew.tahunAjaranId;
-            }
-            if (key === "siswa" && !camelNew.status) {
-              camelNew.status = "aktif";
-            }
-            useDB.setState({ [key]: [...items, camelNew] });
-          }
-        } else if (eventType === "UPDATE") {
-          const index = items.findIndex((item) => item.id === camelNew.id);
-          if (index !== -1) {
-            if (key === "kelas") {
-              const ta = tahunAjaranCache.find((x) => x.id === camelNew.tahunAjaranId);
-              camelNew.tahunAjaran = ta ? ta.nama : "2025/2026";
-              delete camelNew.tahunAjaranId;
-            }
-            if (key === "siswa" && !camelNew.status) {
-              camelNew.status = items[index].status || "aktif";
-            }
-            items[index] = camelNew;
-            useDB.setState({ [key]: items });
-          }
-        } else if (eventType === "DELETE") {
-          const updatedItems = items.filter((item) => item.id !== camelOld.id);
-          useDB.setState({ [key]: updatedItems });
-        }
+  if (key === "users") {
+    const channelProfiles = supabase
+      .channel("rt-profiles-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+        loadedTables.users = false;
+        ensureTableLoaded("users");
       })
       .subscribe();
 
-    activeSubscriptions.push(channel);
+    const channelRoles = supabase
+      .channel("rt-roles-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => {
+        loadedTables.users = false;
+        ensureTableLoaded("users");
+      })
+      .subscribe();
+
+    activeSubscriptions.users = {
+      unsubscribe: () => {
+        supabase.removeChannel(channelProfiles);
+        supabase.removeChannel(channelRoles);
+      },
+    };
+    return;
+  }
+
+  const tableName = tableMap[key];
+  if (!tableName) return;
+
+  console.log(`[Supabase] Subscribing to realtime updates for ${tableName}...`);
+
+  const channel = supabase
+    .channel(`rt-${tableName}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: tableName }, (payload: any) => {
+      const { eventType, new: newRow, old: oldRow } = payload;
+      const camelNew = snakeToCamel(newRow);
+      const camelOld = snakeToCamel(oldRow);
+
+      const currentState = useDB.getState();
+      const items = [...((currentState[key as keyof SeedShape] || []) as any[])];
+
+      if (eventType === "INSERT") {
+        if (!items.some((item) => item.id === camelNew.id)) {
+          if (key === "kelas") {
+            loadedTables.kelas = false;
+            ensureTableLoaded("kelas");
+            return;
+          }
+          if (key === "siswa" && !camelNew.status) {
+            camelNew.status = "aktif";
+          }
+          useDB.setState({ [key]: [...items, camelNew] });
+        }
+      } else if (eventType === "UPDATE") {
+        const index = items.findIndex((item) => item.id === camelNew.id);
+        if (index !== -1) {
+          if (key === "kelas") {
+            loadedTables.kelas = false;
+            ensureTableLoaded("kelas");
+            return;
+          }
+          if (key === "siswa" && !camelNew.status) {
+            camelNew.status = items[index].status || "aktif";
+          }
+          items[index] = camelNew;
+          useDB.setState({ [key]: items });
+        }
+      } else if (eventType === "DELETE") {
+        const updatedItems = items.filter((item) => item.id !== camelOld.id);
+        useDB.setState({ [key]: updatedItems });
+      }
+    })
+    .subscribe();
+
+  activeSubscriptions[key] = { unsubscribe: () => supabase.removeChannel(channel) };
+}
+
+// Function to ensure specific database tables are loaded on-demand
+export async function ensureTableLoaded(key: string) {
+  if (loadedTables[key]) {
+    return;
+  }
+
+  loadedTables[key] = true;
+
+  try {
+    if (key === "users") {
+      const [{ data: profiles }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("*"),
+        supabase.from("user_roles").select("*"),
+      ]);
+
+      const users = (profiles || []).map((p) => {
+        const rolePriority = ["admin", "guru", "ortu"];
+        const uRoles = roles?.filter((r) => r.user_id === p.id) || [];
+        const role = rolePriority.find((r) => uRoles.some((x) => x.role === r)) ?? "ortu";
+        return {
+          id: p.id,
+          name: p.nama,
+          email: p.email || "",
+          role: role as any,
+          phone: p.phone || undefined,
+          avatar: p.avatar_url || undefined,
+        };
+      });
+
+      useDB.setState({ users });
+      subscribeToTableRealtime("users");
+      return;
+    }
+
+    const tableName = tableMap[key];
+    if (!tableName) return;
+
+    let query = supabase.from(tableName as any).select("*");
+
+    if (key === "notifikasi" || key === "audit") {
+      query = query.order("tanggal", { ascending: false }).limit(50);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error(`Error loading table ${tableName} from Supabase:`, error);
+      loadedTables[key] = false;
+      return;
+    }
+
+    if (key === "siswa") {
+      useDB.setState({
+        siswa: (data || []).map((s: any) => ({
+          ...snakeToCamel(s),
+          status: s.status || "aktif",
+        })),
+      });
+    } else if (key === "kelas") {
+      const { data: kelasData } = await supabase.from("kelas").select("*, tahun_ajaran(id, nama)");
+      useDB.setState({
+        kelas: (kelasData || []).map((c: any) => ({
+          id: c.id,
+          nama: c.nama,
+          tingkat: c.tingkat,
+          waliKelasId: c.wali_kelas_id || "",
+          tahunAjaran: c.tahun_ajaran?.nama || "2025/2026",
+        })),
+      });
+    } else {
+      useDB.setState({
+        [key]: snakeToCamel(data || []),
+      });
+    }
+
+    subscribeToTableRealtime(key);
+  } catch (err) {
+    console.error(`Failed loading database table ${key}:`, err);
+    loadedTables[key] = false;
   }
 }
 
-// Clean up all active real-time channels
+// React Hook for lazy loading tables on page load
+export function useLazyLoadTables(keys: string[]) {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      await Promise.all(keys.map((k) => ensureTableLoaded(k)));
+      if (active) setLoading(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [keys]);
+
+  return loading;
+}
+
+// Backward-compatible empty hooks to prevent breaking other files
+export async function loadAllFromSupabase(realUserId: string, realUserEmail: string) {
+  console.log("[Supabase] Legacy loadAllFromSupabase called - NOP. Tables loaded dynamically.");
+}
+
+export function subscribeToAllRealtime() {
+  // NOP: Subscriptions are made dynamically per table when loaded
+}
+
 export function unsubscribeFromAllRealtime() {
-  if (activeSubscriptions.length > 0) {
-    console.log("[Supabase] Unsubscribing from real-time table replication...");
-    for (const channel of activeSubscriptions) {
-      supabase.removeChannel(channel);
+  const keys = Object.keys(activeSubscriptions);
+  if (keys.length > 0) {
+    console.log("[Supabase] Unsubscribing from all realtime table replications...");
+    for (const key of keys) {
+      activeSubscriptions[key].unsubscribe();
     }
-    activeSubscriptions = [];
+    for (const key of keys) {
+      delete activeSubscriptions[key];
+    }
   }
 }

@@ -27,7 +27,9 @@ export function StatCard({
     <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {label}
+          </p>
           <p className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">{value}</p>
           {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
         </div>

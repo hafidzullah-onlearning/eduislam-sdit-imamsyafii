@@ -6,9 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +90,9 @@ function UsersPage() {
     }
 
     const emailExists = users.some(
-      (u) => u.email.toLowerCase() === form.email.toLowerCase() && (!editingUser || u.id !== editingUser.id)
+      (u) =>
+        u.email.toLowerCase() === form.email.toLowerCase() &&
+        (!editingUser || u.id !== editingUser.id),
     );
     if (emailExists) {
       return toast.error("Email sudah digunakan oleh user lain");
@@ -81,9 +102,15 @@ function UsersPage() {
       patch("users", (prev) =>
         prev.map((u) =>
           u.id === editingUser.id
-            ? { ...u, name: form.name, email: form.email, phone: form.phone || undefined, role: form.role }
-            : u
-        )
+            ? {
+                ...u,
+                name: form.name,
+                email: form.email,
+                phone: form.phone || undefined,
+                role: form.role,
+              }
+            : u,
+        ),
       );
       toast.success(`Data user "${form.name}" berhasil diperbarui`);
     } else {
@@ -118,7 +145,9 @@ function UsersPage() {
     toast.success(`Password untuk "${u.name}" berhasil direset. Tautan telah dikirim.`);
   };
 
-  const list = users.filter((u) => u.role === tab).filter((u) => u.name.toLowerCase().includes(q.toLowerCase()));
+  const list = users
+    .filter((u) => u.role === tab)
+    .filter((u) => u.name.toLowerCase().includes(q.toLowerCase()));
 
   return (
     <div className="space-y-6">
@@ -140,7 +169,12 @@ function UsersPage() {
         </TabsList>
       </Tabs>
 
-      <Input placeholder="Cari nama…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-md" />
+      <Input
+        placeholder="Cari nama…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="max-w-md"
+      />
 
       <div className="rounded-2xl border border-border/60 bg-card shadow-soft overflow-hidden">
         <Table>
@@ -214,7 +248,9 @@ function UsersPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs font-semibold">Nama Lengkap</Label>
+              <Label htmlFor="name" className="text-xs font-semibold">
+                Nama Lengkap
+              </Label>
               <Input
                 id="name"
                 placeholder="Misal: Bapak Rahmat"
@@ -223,7 +259,9 @@ function UsersPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-semibold">Email</Label>
+              <Label htmlFor="email" className="text-xs font-semibold">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -233,7 +271,9 @@ function UsersPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-xs font-semibold">No. HP (Opsional)</Label>
+              <Label htmlFor="phone" className="text-xs font-semibold">
+                No. HP (Opsional)
+              </Label>
               <Input
                 id="phone"
                 placeholder="+62 8..."
@@ -263,7 +303,10 @@ function UsersPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               {editingUser ? "Simpan Perubahan" : "Tambah User"}
             </Button>
           </DialogFooter>
@@ -274,9 +317,12 @@ function UsersPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive font-bold">Hapus Akun User?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive font-bold">
+              Hapus Akun User?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus user <strong>{userToDelete?.name}</strong> ({userToDelete?.email})?
+              Apakah Anda yakin ingin menghapus user <strong>{userToDelete?.name}</strong> (
+              {userToDelete?.email})?
               <br />
               <span className="text-xs text-destructive mt-1 block">
                 Tindakan ini permanen. User tidak akan bisa login lagi ke portal sekolah.
@@ -285,7 +331,10 @@ function UsersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus User
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -294,4 +343,3 @@ function UsersPage() {
     </div>
   );
 }
-

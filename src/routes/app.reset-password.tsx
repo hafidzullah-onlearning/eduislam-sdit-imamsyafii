@@ -38,8 +38,13 @@ function ResetPage() {
             <Label htmlFor="p2">Konfirmasi kata sandi</Label>
             <Input id="p2" type="password" value={p2} onChange={(e) => setP2(e.target.value)} />
           </div>
-          <Button type="submit" className="w-full">Simpan</Button>
-          <Link to="/app/login" className="block text-center text-sm text-muted-foreground hover:text-foreground">
+          <Button type="submit" className="w-full">
+            Simpan
+          </Button>
+          <Link
+            to="/app/login"
+            className="block text-center text-sm text-muted-foreground hover:text-foreground"
+          >
             Batal, kembali ke masuk
           </Link>
         </form>

@@ -9,11 +9,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth/mock-auth";
-import { useDB, genId } from "@/lib/mock-store";
+import { useDB, genId, useLazyLoadTables } from "@/lib/mock-store";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { toast } from "sonner";
@@ -24,7 +37,17 @@ export const Route = createFileRoute("/app/nilai")({
 });
 
 function NilaiPage() {
+  const loading = useLazyLoadTables(["nilai", "mapel"]);
   const { session, user } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex h-48 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   if (session?.role === "guru") return <GuruNilai />;
   return <OrtuNilai />;
 }
@@ -35,7 +58,9 @@ function OrtuNilai() {
   const nilai = useDB((s) => s.nilai);
   const mapel = useDB((s) => s.mapel);
   const [tab, setTab] = useState<"semua" | "harian" | "uts" | "uas">("semua");
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id).find((k) => k.id === session?.activeSiswaId);
+  const anak = siswa
+    .filter((s) => s.orangTuaId === user?.id)
+    .find((k) => k.id === session?.activeSiswaId);
 
   const list = useMemo(() => {
     if (!anak) return [];
@@ -62,12 +87,26 @@ function OrtuNilai() {
       <PageHeader
         title={`Nilai & Rapor — ${anak?.nama ?? ""}`}
         description="Progres akademik anak Anda per mata pelajaran."
-        actions={<Button variant="outline" onClick={() => toast.success("Rapor PDF didownload (mock)")}><Download className="h-4 w-4" /> Rapor PDF</Button>}
+        actions={
+          <Button variant="outline" onClick={() => toast.success("Rapor PDF didownload (mock)")}>
+            <Download className="h-4 w-4" /> Rapor PDF
+          </Button>
+        }
       />
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Rata-rata" value={avg || "—"} icon={Award} tone={avg >= 80 ? "success" : "default"} />
+        <StatCard
+          label="Rata-rata"
+          value={avg || "—"}
+          icon={Award}
+          tone={avg >= 80 ? "success" : "default"}
+        />
         <StatCard label="Nilai terpublish" value={list.length} icon={Award} tone="info" />
-        <StatCard label="Di atas KKM" value={list.filter((n) => n.nilai >= n.kkm).length} icon={Award} tone="success" />
+        <StatCard
+          label="Di atas KKM"
+          value={list.filter((n) => n.nilai >= n.kkm).length}
+          icon={Award}
+          tone="success"
+        />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
@@ -86,9 +125,23 @@ function OrtuNilai() {
             <ResponsiveContainer>
               <BarChart data={perMapel}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.5} />
-                <XAxis dataKey="mapel" tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-card)" }} />
+                <XAxis
+                  dataKey="mapel"
+                  tick={{ fontSize: 11 }}
+                  stroke="var(--color-muted-foreground)"
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 11 }}
+                  stroke="var(--color-muted-foreground)"
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-card)",
+                  }}
+                />
                 <Bar dataKey="Rata" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="KKM" fill="var(--color-gold)" radius={[8, 8, 0, 0]} />
               </BarChart>
@@ -107,14 +160,31 @@ function OrtuNilai() {
               const m = mapel.find((x) => x.id === n.mapelId);
               const lulus = n.nilai >= n.kkm;
               return (
-                <div key={n.id} className="flex items-center justify-between rounded-xl border border-border/60 p-3">
+                <div
+                  key={n.id}
+                  className="flex items-center justify-between rounded-xl border border-border/60 p-3"
+                >
                   <div>
-                    <p className="font-semibold">{m?.nama} <Badge variant="outline" className="ml-1">{n.jenis}</Badge></p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(n.tanggal), "dd MMM yyyy", { locale: idLocale })} • KKM {n.kkm}</p>
+                    <p className="font-semibold">
+                      {m?.nama}{" "}
+                      <Badge variant="outline" className="ml-1">
+                        {n.jenis}
+                      </Badge>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(n.tanggal), "dd MMM yyyy", { locale: idLocale })} • KKM{" "}
+                      {n.kkm}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-extrabold ${lulus ? "text-emerald-600" : "text-red-600"}`}>{n.nilai}</p>
-                    <p className="text-[10px] font-semibold uppercase text-muted-foreground">{lulus ? "Lulus KKM" : "Di bawah KKM"}</p>
+                    <p
+                      className={`text-xl font-extrabold ${lulus ? "text-emerald-600" : "text-red-600"}`}
+                    >
+                      {n.nilai}
+                    </p>
+                    <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                      {lulus ? "Lulus KKM" : "Di bawah KKM"}
+                    </p>
                   </div>
                 </div>
               );
@@ -135,23 +205,43 @@ function GuruNilai() {
   const patch = useDB((s) => s.patch);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"published" | "draft">("published");
-  const [form, setForm] = useState({ siswaId: "", mapelId: "", jenis: "harian" as const, nilai: 0, kkm: 75, catatan: "" });
+  const [form, setForm] = useState({
+    siswaId: "",
+    mapelId: "",
+    jenis: "harian" as const,
+    nilai: 0,
+    kkm: 75,
+    catatan: "",
+  });
 
   const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
-  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
+  const mySiswa = siswa.filter(
+    (s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId),
+  );
 
   const list = nilai.filter((n) => n.guruId === user?.id).filter((n) => n.status === tab);
 
   const save = () => {
     if (!form.siswaId || !form.mapelId) return toast.error("Lengkapi field");
-    patch("nilai", (items) => [...items, { id: genId("n"), ...form, status: "draft" as const, tanggal: new Date().toISOString(), guruId: user!.id }]);
+    patch("nilai", (items) => [
+      ...items,
+      {
+        id: genId("n"),
+        ...form,
+        status: "draft" as const,
+        tanggal: new Date().toISOString(),
+        guruId: user!.id,
+      },
+    ]);
     toast.success("Nilai tersimpan sebagai draft");
     setOpen(false);
     setForm({ siswaId: "", mapelId: "", jenis: "harian", nilai: 0, kkm: 75, catatan: "" });
   };
 
   const publish = (id: string) => {
-    patch("nilai", (items) => items.map((n) => (n.id === id ? { ...n, status: "published" as const } : n)));
+    patch("nilai", (items) =>
+      items.map((n) => (n.id === id ? { ...n, status: "published" as const } : n)),
+    );
     toast.success("Nilai dipublish ke orang tua");
   };
 
@@ -167,26 +257,62 @@ function GuruNilai() {
         description="Input, edit, dan publish nilai siswa."
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4" /> Input nilai</Button></DialogTrigger>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4" /> Input nilai
+              </Button>
+            </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Input nilai baru</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>Input nilai baru</DialogTitle>
+              </DialogHeader>
               <div className="space-y-3">
-                <div className="space-y-1.5"><Label>Siswa *</Label>
-                  <Select value={form.siswaId} onValueChange={(v) => setForm({ ...form, siswaId: v })}>
-                    <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                    <SelectContent>{mySiswa.map((s) => <SelectItem key={s.id} value={s.id}>{s.nama}</SelectItem>)}</SelectContent>
+                <div className="space-y-1.5">
+                  <Label>Siswa *</Label>
+                  <Select
+                    value={form.siswaId}
+                    onValueChange={(v) => setForm({ ...form, siswaId: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mySiswa.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.nama}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5"><Label>Mapel *</Label>
-                  <Select value={form.mapelId} onValueChange={(v) => setForm({ ...form, mapelId: v })}>
-                    <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                    <SelectContent>{mapel.map((m) => <SelectItem key={m.id} value={m.id}>{m.nama}</SelectItem>)}</SelectContent>
+                <div className="space-y-1.5">
+                  <Label>Mapel *</Label>
+                  <Select
+                    value={form.mapelId}
+                    onValueChange={(v) => setForm({ ...form, mapelId: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mapel.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.nama}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1.5"><Label>Jenis</Label>
-                    <Select value={form.jenis} onValueChange={(v: any) => setForm({ ...form, jenis: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                  <div className="space-y-1.5">
+                    <Label>Jenis</Label>
+                    <Select
+                      value={form.jenis}
+                      onValueChange={(v: any) => setForm({ ...form, jenis: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="harian">Harian</SelectItem>
                         <SelectItem value="tugas">Tugas</SelectItem>
@@ -195,16 +321,40 @@ function GuruNilai() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5"><Label>Nilai</Label><Input type="number" min={0} max={100} value={form.nilai} onChange={(e) => setForm({ ...form, nilai: +e.target.value })} /></div>
-                  <div className="space-y-1.5"><Label>KKM</Label><Input type="number" min={0} max={100} value={form.kkm} onChange={(e) => setForm({ ...form, kkm: +e.target.value })} /></div>
+                  <div className="space-y-1.5">
+                    <Label>Nilai</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={form.nilai}
+                      onChange={(e) => setForm({ ...form, nilai: +e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>KKM</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={form.kkm}
+                      onChange={(e) => setForm({ ...form, kkm: +e.target.value })}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Catatan (opsional)</Label>
-                  <Textarea placeholder="Umpan balik atau catatan evaluasi siswa..." value={form.catatan} onChange={(e) => setForm({ ...form, catatan: e.target.value })} />
+                  <Textarea
+                    placeholder="Umpan balik atau catatan evaluasi siswa..."
+                    value={form.catatan}
+                    onChange={(e) => setForm({ ...form, catatan: e.target.value })}
+                  />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setOpen(false)}>Batal</Button>
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  Batal
+                </Button>
                 <Button onClick={save}>Simpan</Button>
               </DialogFooter>
             </DialogContent>
@@ -226,16 +376,33 @@ function GuruNilai() {
             const s = siswa.find((x) => x.id === n.siswaId);
             const m = mapel.find((x) => x.id === n.mapelId);
             return (
-              <div key={n.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-soft">
+              <div
+                key={n.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-soft"
+              >
                 <div>
                   <p className="font-semibold">{s?.nama}</p>
-                  <p className="text-xs text-muted-foreground">{m?.nama} • {n.jenis} • KKM {n.kkm} • {format(new Date(n.tanggal), "dd MMM yyyy", { locale: idLocale })}</p>
-                  {n.catatan && <p className="mt-1 text-xs italic text-muted-foreground">"{n.catatan}"</p>}
+                  <p className="text-xs text-muted-foreground">
+                    {m?.nama} • {n.jenis} • KKM {n.kkm} •{" "}
+                    {format(new Date(n.tanggal), "dd MMM yyyy", { locale: idLocale })}
+                  </p>
+                  {n.catatan && (
+                    <p className="mt-1 text-xs italic text-muted-foreground">"{n.catatan}"</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl font-extrabold text-primary">{n.nilai}</span>
-                  {n.status === "draft" && <Button size="sm" onClick={() => publish(n.id)}>Publish</Button>}
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(n.id)}>
+                  {n.status === "draft" && (
+                    <Button size="sm" onClick={() => publish(n.id)}>
+                      Publish
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => remove(n.id)}
+                  >
                     ✕
                   </Button>
                 </div>

@@ -28,9 +28,9 @@ export function Hero() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-[1.7] text-muted-foreground">
-              Satu platform terintegrasi untuk mengelola akademik, hafalan Qur'an,
-              analisis mood siswa, komunikasi orang tua, dan pembayaran SPP dalam satu
-              ekosistem digital yang aman.
+              Satu platform terintegrasi untuk mengelola akademik, hafalan Qur'an, analisis mood
+              siswa, komunikasi orang tua, dan pembayaran SPP dalam satu ekosistem digital yang
+              aman.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

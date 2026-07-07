@@ -8,8 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth/mock-auth";
 import { useDB, genId } from "@/lib/mock-store";
 import { toast } from "sonner";
@@ -39,7 +52,9 @@ function getGeminiApiKey() {
 
 // Server function for generating material learning instructions via Gemini AI
 export const generateMateriInstructions = createServerFn({ method: "POST" })
-  .validator((data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => data)
+  .validator(
+    (data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => data,
+  )
   .handler(async ({ data }) => {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
@@ -70,7 +85,7 @@ Gunakan gaya bahasa yang santun, hangat, bernuansa Islami (menggunakan Assalamu'
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -88,7 +103,12 @@ Gunakan gaya bahasa yang santun, hangat, bernuansa Islami (menggunakan Assalamu'
   });
 
 // High-quality local rule-based fallback generator
-const generateLocalInstructions = (judul: string, mapelName: string, kelasName: string, linkUrl: string) => {
+const generateLocalInstructions = (
+  judul: string,
+  mapelName: string,
+  kelasName: string,
+  linkUrl: string,
+) => {
   return `Assalamu'alaikum Warahmatullahi Wabarakatuh, Ayah dan Bunda yang dirahmati Allah.
 
 Berikut adalah petunjuk belajar untuk mendampingi Ananda mempelajari materi "${judul}" dalam mata pelajaran ${mapelName} untuk ${kelasName}.
@@ -134,11 +154,19 @@ function MateriPage() {
   const myKelas = isGuru ? kelas.filter((k) => k.waliKelasId === user?.id) : [];
 
   const anak = isOrtu
-    ? siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").find((k) => k.id === session?.activeSiswaId)
+    ? siswa
+        .filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif")
+        .find((k) => k.id === session?.activeSiswaId)
     : null;
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ judul: "", deskripsi: "", linkUrl: "", kelasId: "", mapelId: "" });
+  const [form, setForm] = useState({
+    judul: "",
+    deskripsi: "",
+    linkUrl: "",
+    kelasId: "",
+    mapelId: "",
+  });
   const [loadingAI, setLoadingAI] = useState(false);
 
   const handleSave = () => {
@@ -170,7 +198,9 @@ function MateriPage() {
 
   const handleGenerateAI = async () => {
     if (!form.judul || !form.kelasId || !form.mapelId) {
-      return toast.error("Lengkapi Judul, Mapel, dan Kelas terlebih dahulu agar AI memahami konteksnya.");
+      return toast.error(
+        "Lengkapi Judul, Mapel, dan Kelas terlebih dahulu agar AI memahami konteksnya.",
+      );
     }
 
     setLoadingAI(true);
@@ -187,9 +217,9 @@ function MateriPage() {
           mapelName,
           kelasName,
           linkUrl: form.linkUrl,
-        }
+        },
       });
-      
+
       if (!response || !response.text) {
         throw new Error("Received empty or invalid response from AI server function");
       }
@@ -202,7 +232,7 @@ function MateriPage() {
         form.judul,
         mapelName,
         kelasName,
-        form.linkUrl
+        form.linkUrl,
       );
       setForm((prev) => ({ ...prev, deskripsi: fallbackText }));
       toast.info("Menggunakan draf petunjuk standar karena AI tidak merespon.");
@@ -215,7 +245,9 @@ function MateriPage() {
   const list = isGuru
     ? materiList.filter((m) => myKelas.some((k) => k.id === m.kelasId))
     : isOrtu
-      ? (anak ? materiList.filter((m) => m.kelasId === anak.kelasId) : [])
+      ? anak
+        ? materiList.filter((m) => m.kelasId === anak.kelasId)
+        : []
       : materiList;
 
   return (
@@ -228,7 +260,7 @@ function MateriPage() {
             : "Bagikan materi, video, dan bahan bacaan ke kelas yang Anda ampu."
         }
         actions={
-          (isGuru || isAdmin) ? (
+          isGuru || isAdmin ? (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -242,12 +274,19 @@ function MateriPage() {
                 <div className="space-y-3">
                   <div className="space-y-1.5">
                     <Label>Judul Materi *</Label>
-                    <Input value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} placeholder="Contoh: Pengenalan Huruf Hijaiyah" />
+                    <Input
+                      value={form.judul}
+                      onChange={(e) => setForm({ ...form, judul: e.target.value })}
+                      placeholder="Contoh: Pengenalan Huruf Hijaiyah"
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label>Mata Pelajaran *</Label>
-                      <Select value={form.mapelId} onValueChange={(v) => setForm({ ...form, mapelId: v })}>
+                      <Select
+                        value={form.mapelId}
+                        onValueChange={(v) => setForm({ ...form, mapelId: v })}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih" />
                         </SelectTrigger>
@@ -262,7 +301,10 @@ function MateriPage() {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Kelas Penerima *</Label>
-                      <Select value={form.kelasId} onValueChange={(v) => setForm({ ...form, kelasId: v })}>
+                      <Select
+                        value={form.kelasId}
+                        onValueChange={(v) => setForm({ ...form, kelasId: v })}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih" />
                         </SelectTrigger>
@@ -278,7 +320,11 @@ function MateriPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>URL Sumber (Drive / YouTube / PDF)</Label>
-                    <Input value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} placeholder="https://..." />
+                    <Input
+                      value={form.linkUrl}
+                      onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+                      placeholder="https://..."
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -337,7 +383,10 @@ function MateriPage() {
             const k = kelas.find((x) => x.id === m.kelasId);
             const mp = mapel.find((x) => x.id === m.mapelId);
             return (
-              <div key={m.id} className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
+              <div
+                key={m.id}
+                className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

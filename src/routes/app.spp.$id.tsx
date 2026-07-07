@@ -1,12 +1,23 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Building2, QrCode, Smartphone, CreditCard, Copy, Printer, CheckCircle2, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  QrCode,
+  Smartphone,
+  CreditCard,
+  Copy,
+  Printer,
+  CheckCircle2,
+  Clock,
+} from "lucide-react";
 import { PageHeader } from "@/components/app/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDB, genId } from "@/lib/mock-store";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/mock-auth";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -15,9 +26,27 @@ import type { PaymentMethod } from "@/mocks/types";
 
 export const Route = createFileRoute("/app/spp/$id")({ component: InvoicePage });
 
-const METHODS: { id: PaymentMethod; label: string; icon: typeof Building2; group: string; kode?: string }[] = [
-  { id: "va-bca", label: "Virtual Account BCA", icon: Building2, group: "Virtual Account", kode: "8823" },
-  { id: "va-mandiri", label: "Virtual Account Mandiri", icon: Building2, group: "Virtual Account", kode: "8908" },
+const METHODS: {
+  id: PaymentMethod;
+  label: string;
+  icon: typeof Building2;
+  group: string;
+  kode?: string;
+}[] = [
+  {
+    id: "va-bca",
+    label: "Virtual Account BCA",
+    icon: Building2,
+    group: "Virtual Account",
+    kode: "8823",
+  },
+  {
+    id: "va-mandiri",
+    label: "Virtual Account Mandiri",
+    icon: Building2,
+    group: "Virtual Account",
+    kode: "8908",
+  },
   { id: "qris", label: "QRIS", icon: QrCode, group: "QRIS" },
   { id: "gopay", label: "GoPay", icon: Smartphone, group: "E-Wallet" },
   { id: "ovo", label: "OVO", icon: Smartphone, group: "E-Wallet" },
@@ -36,17 +65,15 @@ function InvoicePage() {
   const [method, setMethod] = useState<PaymentMethod | null>(inv?.metode ?? null);
   const [referensi, setReferensi] = useState(inv?.referensi ?? "");
   const [step, setStep] = useState<"pilih" | "instruksi" | "sukses" | "menunggu">(
-    inv?.status === "lunas"
-      ? "sukses"
-      : inv?.status === "menunggu"
-        ? "menunggu"
-        : "pilih"
+    inv?.status === "lunas" ? "sukses" : inv?.status === "menunggu" ? "menunggu" : "pilih",
   );
 
   if (!inv) return <p>Tagihan tidak ditemukan.</p>;
   const s = siswa.find((x) => x.id === inv.siswaId);
   const chosen = METHODS.find((m) => m.id === method);
-  const vaNumber = chosen?.kode ? `${chosen.kode}${s?.nis ?? "0000"}${inv.jumlah.toString().slice(0, 4)}` : null;
+  const vaNumber = chosen?.kode
+    ? `${chosen.kode}${s?.nis ?? "0000"}${inv.jumlah.toString().slice(0, 4)}`
+    : null;
 
   const submitPayment = () => {
     if (!referensi.trim()) {
@@ -61,8 +88,8 @@ function InvoicePage() {
               metode: method!,
               referensi: referensi.trim(),
             }
-          : i
-      )
+          : i,
+      ),
     );
     toast.success("Konfirmasi pembayaran berhasil dikirim. Menunggu verifikasi admin.");
     setStep("menunggu");
@@ -78,20 +105,14 @@ function InvoicePage() {
                 status: "lunas" as const,
                 dibayarPada: new Date().toISOString(),
               }
-            : i
-        )
+            : i,
+        ),
       );
       // Log audit
-      patch("audit", (prev) => [
-        ...prev,
-        {
-          id: genId("audit"),
-          userId: user?.id ?? "",
-          aksi: "VERIFIKASI_SPP_SETUJU",
-          target: `Invoice #${id} - ${s?.nama}`,
-          tanggal: new Date().toISOString(),
-        },
-      ]);
+      supabase.rpc("log_activity", {
+        p_aksi: "VERIFIKASI_SPP_SETUJU",
+        p_target: `Invoice #${id} - ${s?.nama}`,
+      });
       toast.success("Pembayaran berhasil diverifikasi.");
       setStep("sukses");
     } else {
@@ -104,20 +125,14 @@ function InvoicePage() {
                 metode: undefined,
                 referensi: undefined,
               }
-            : i
-        )
+            : i,
+        ),
       );
       // Log audit
-      patch("audit", (prev) => [
-        ...prev,
-        {
-          id: genId("audit"),
-          userId: user?.id ?? "",
-          aksi: "VERIFIKASI_SPP_TOLAK",
-          target: `Invoice #${id} - ${s?.nama}`,
-          tanggal: new Date().toISOString(),
-        },
-      ]);
+      supabase.rpc("log_activity", {
+        p_aksi: "VERIFIKASI_SPP_TOLAK",
+        p_target: `Invoice #${id} - ${s?.nama}`,
+      });
       toast.error("Konfirmasi pembayaran ditolak.");
       setStep("pilih");
     }
@@ -125,23 +140,34 @@ function InvoicePage() {
 
   return (
     <div className="space-y-6">
-      <button onClick={() => router.history.back()} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <button
+        onClick={() => router.history.back()}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> Kembali
       </button>
       <PageHeader
         eyebrow={`Invoice #${inv.id.toUpperCase()}`}
         title={`${inv.jenis.toUpperCase()} • ${inv.bulan}`}
         description={`${s?.nama} — NIS ${s?.nis}`}
-        actions={inv.status === "lunas" && <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4" /> Cetak</Button>}
+        actions={
+          inv.status === "lunas" && (
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Cetak
+            </Button>
+          )
+        }
       />
 
       {user?.role === "admin" && inv.status === "menunggu" && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-3">
           <h4 className="font-bold text-amber-800 flex items-center gap-1.5 text-sm">
-            <Clock className="h-4 w-4 text-amber-600 animate-pulse" /> Aksi Verifikasi Pembayaran (Admin)
+            <Clock className="h-4 w-4 text-amber-600 animate-pulse" /> Aksi Verifikasi Pembayaran
+            (Admin)
           </h4>
           <p className="text-xs text-amber-700">
-            Orang Tua telah mengirimkan konfirmasi pembayaran. Periksa kecocokan data dengan mutasi rekening sebelum menyetujui.
+            Orang Tua telah mengirimkan konfirmasi pembayaran. Periksa kecocokan data dengan mutasi
+            rekening sebelum menyetujui.
           </p>
           <div className="flex gap-2">
             <Button
@@ -193,15 +219,24 @@ function InvoicePage() {
                 <CheckCircle2 className="h-8 w-8" />
               </div>
               <h3 className="mt-4 text-xl font-extrabold">Pembayaran Diterima</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Barakallahu fiik. Kwitansi telah dikirim ke email Anda.</p>
-              {inv.referensi && <p className="mt-3 text-xs text-muted-foreground">Referensi: <span className="font-mono font-semibold text-foreground">{inv.referensi}</span></p>}
+              <p className="mt-1 text-sm text-muted-foreground">
+                Barakallahu fiik. Kwitansi telah dikirim ke email Anda.
+              </p>
+              {inv.referensi && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Referensi:{" "}
+                  <span className="font-mono font-semibold text-foreground">{inv.referensi}</span>
+                </p>
+              )}
             </div>
           ) : step === "pilih" ? (
             <>
               <h3 className="mb-4 font-bold">Pilih metode pembayaran</h3>
               {["Virtual Account", "QRIS", "E-Wallet", "Kartu"].map((group) => (
                 <div key={group} className="mb-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group}</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {METHODS.filter((m) => m.group === group).map((m) => (
                       <button
@@ -209,14 +244,18 @@ function InvoicePage() {
                         onClick={() => setMethod(m.id)}
                         className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${method === m.id ? "border-primary bg-primary/5" : "border-border/60 hover:border-primary/40"}`}
                       >
-                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary"><m.icon className="h-5 w-5" /></div>
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                          <m.icon className="h-5 w-5" />
+                        </div>
                         <span className="text-sm font-semibold">{m.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               ))}
-              <Button className="w-full" disabled={!method} onClick={() => setStep("instruksi")}>Lanjutkan</Button>
+              <Button className="w-full" disabled={!method} onClick={() => setStep("instruksi")}>
+                Lanjutkan
+              </Button>
             </>
           ) : (
             <>
@@ -224,11 +263,24 @@ function InvoicePage() {
               {chosen?.group === "Virtual Account" && (
                 <div className="rounded-xl border border-border/60 bg-surface-soft/50 p-5 text-center">
                   <p className="text-xs uppercase text-muted-foreground">Nomor Virtual Account</p>
-                  <p className="mt-2 font-mono text-2xl font-extrabold tracking-wider">{vaNumber}</p>
-                  <Button size="sm" variant="outline" className="mt-3" onClick={() => { navigator.clipboard.writeText(vaNumber!); toast.success("Nomor disalin"); }}>
+                  <p className="mt-2 font-mono text-2xl font-extrabold tracking-wider">
+                    {vaNumber}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3"
+                    onClick={() => {
+                      navigator.clipboard.writeText(vaNumber!);
+                      toast.success("Nomor disalin");
+                    }}
+                  >
                     <Copy className="h-3.5 w-3.5" /> Salin
                   </Button>
-                  <p className="mt-4 text-xs text-muted-foreground">Transfer ke nomor di atas melalui m-banking atau ATM {chosen?.label.replace("Virtual Account ", "")}.</p>
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Transfer ke nomor di atas melalui m-banking atau ATM{" "}
+                    {chosen?.label.replace("Virtual Account ", "")}.
+                  </p>
                 </div>
               )}
               {chosen?.group === "QRIS" && (
@@ -236,21 +288,28 @@ function InvoicePage() {
                   <div className="mx-auto grid h-48 w-48 place-items-center rounded-2xl bg-background">
                     <QrCode className="h-40 w-40" strokeWidth={0.5} />
                   </div>
-                  <p className="mt-4 text-xs text-muted-foreground">Scan QR ini dengan aplikasi e-wallet atau m-banking yang mendukung QRIS.</p>
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Scan QR ini dengan aplikasi e-wallet atau m-banking yang mendukung QRIS.
+                  </p>
                 </div>
               )}
               {chosen?.group === "E-Wallet" && (
                 <div className="rounded-xl border border-border/60 bg-surface-soft/50 p-5 text-center">
-                  <p className="text-sm">Anda akan diarahkan ke aplikasi {chosen?.label} untuk menyelesaikan pembayaran.</p>
+                  <p className="text-sm">
+                    Anda akan diarahkan ke aplikasi {chosen?.label} untuk menyelesaikan pembayaran.
+                  </p>
                 </div>
               )}
               {chosen?.group === "Kartu" && (
-                <p className="rounded-xl border border-border/60 bg-surface-soft/50 p-5 text-center text-sm">Anda akan diarahkan ke halaman pembayaran aman kartu.</p>
+                <p className="rounded-xl border border-border/60 bg-surface-soft/50 p-5 text-center text-sm">
+                  Anda akan diarahkan ke halaman pembayaran aman kartu.
+                </p>
               )}
               <div className="space-y-4 rounded-xl border border-border/60 bg-surface-soft/30 p-5 mt-4 text-left">
                 <h4 className="text-sm font-bold text-foreground">Konfirmasi Pembayaran</h4>
                 <p className="text-xs text-muted-foreground">
-                  Masukkan nomor referensi transfer atau keterangan transaksi Anda untuk diverifikasi oleh admin.
+                  Masukkan nomor referensi transfer atau keterangan transaksi Anda untuk
+                  diverifikasi oleh admin.
                 </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="referensi-input">Nomor Referensi / Catatan Pembayaran *</Label>
@@ -262,12 +321,10 @@ function InvoicePage() {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep("pilih")}>Ganti metode</Button>
-                  <Button
-                    className="flex-1"
-                    disabled={!referensi.trim()}
-                    onClick={submitPayment}
-                  >
+                  <Button variant="outline" onClick={() => setStep("pilih")}>
+                    Ganti metode
+                  </Button>
+                  <Button className="flex-1" disabled={!referensi.trim()} onClick={submitPayment}>
                     Saya sudah bayar
                   </Button>
                 </div>
@@ -279,18 +336,39 @@ function InvoicePage() {
         <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
           <h3 className="font-bold">Ringkasan</h3>
           <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between"><dt className="text-muted-foreground">Siswa</dt><dd className="font-semibold">{s?.nama}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Jenis</dt><dd className="font-semibold capitalize">{inv.jenis}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Periode</dt><dd className="font-semibold">{inv.bulan}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Jatuh tempo</dt><dd className="font-semibold">{format(new Date(inv.jatuhTempo), "dd MMM yyyy", { locale: idLocale })}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Status</dt>
-              <dd><Badge variant={inv.status === "lunas" ? "default" : "secondary"}>{inv.status}</Badge></dd>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Siswa</dt>
+              <dd className="font-semibold">{s?.nama}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Jenis</dt>
+              <dd className="font-semibold capitalize">{inv.jenis}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Periode</dt>
+              <dd className="font-semibold">{inv.bulan}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Jatuh tempo</dt>
+              <dd className="font-semibold">
+                {format(new Date(inv.jatuhTempo), "dd MMM yyyy", { locale: idLocale })}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Status</dt>
+              <dd>
+                <Badge variant={inv.status === "lunas" ? "default" : "secondary"}>
+                  {inv.status}
+                </Badge>
+              </dd>
             </div>
           </dl>
           <div className="mt-4 border-t border-border/60 pt-4">
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">Total</span>
-              <span className="text-2xl font-extrabold text-primary">Rp {inv.jumlah.toLocaleString("id-ID")}</span>
+              <span className="text-2xl font-extrabold text-primary">
+                Rp {inv.jumlah.toLocaleString("id-ID")}
+              </span>
             </div>
           </div>
         </div>

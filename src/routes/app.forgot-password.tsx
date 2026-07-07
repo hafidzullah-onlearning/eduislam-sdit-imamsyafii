@@ -16,7 +16,10 @@ function ForgotPage() {
   return (
     <div className="grid min-h-screen place-items-center px-4 py-16">
       <div className="w-full max-w-md rounded-3xl border border-border/60 bg-card p-8 shadow-elevation">
-        <Link to="/app/login" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/app/login"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Kembali ke masuk
         </Link>
         {sent ? (
@@ -26,7 +29,8 @@ function ForgotPage() {
             </div>
             <h1 className="mt-4 text-xl font-extrabold">Cek kotak masuk Anda</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Instruksi reset kata sandi telah dikirim ke <span className="font-medium text-foreground">{email}</span>.
+              Instruksi reset kata sandi telah dikirim ke{" "}
+              <span className="font-medium text-foreground">{email}</span>.
             </p>
             <Link to="/app/reset-password">
               <Button className="mt-6 w-full">Buka halaman reset (demo)</Button>
@@ -52,9 +56,16 @@ function ForgotPage() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
-              <Button type="submit" className="w-full">Kirim tautan reset</Button>
+              <Button type="submit" className="w-full">
+                Kirim tautan reset
+              </Button>
             </form>
           </>
         )}

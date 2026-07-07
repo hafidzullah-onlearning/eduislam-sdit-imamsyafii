@@ -18,15 +18,33 @@ function PengaturanPage() {
           { l: "Notifikasi WhatsApp", d: "Reminder tagihan & mood harian" },
           { l: "Ringkasan mingguan", d: "Rekap tiap Jumat sore" },
         ].map((s) => (
-          <div key={s.l} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-soft">
-            <div><p className="font-semibold">{s.l}</p><p className="text-xs text-muted-foreground">{s.d}</p></div>
+          <div
+            key={s.l}
+            className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-soft"
+          >
+            <div>
+              <p className="font-semibold">{s.l}</p>
+              <p className="text-xs text-muted-foreground">{s.d}</p>
+            </div>
             <Switch defaultChecked />
           </div>
         ))}
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
           <p className="font-semibold text-destructive">Reset data demo</p>
-          <p className="mt-1 text-xs text-muted-foreground">Kembalikan semua data mock ke kondisi awal.</p>
-          <Button variant="destructive" size="sm" className="mt-3" onClick={() => { reset(); toast.success("Data demo di-reset"); }}>Reset sekarang</Button>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Kembalikan semua data mock ke kondisi awal.
+          </p>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() => {
+              reset();
+              toast.success("Data demo di-reset");
+            }}
+          >
+            Reset sekarang
+          </Button>
         </div>
       </div>
     </div>

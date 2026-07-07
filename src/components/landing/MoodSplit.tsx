@@ -27,11 +27,15 @@ export function MoodSplit() {
                   <School className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Senin – Jumat</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Senin – Jumat
+                  </p>
                   <h3 className="text-lg font-bold">Mood di Sekolah</h3>
                 </div>
               </div>
-              <span className="rounded-full bg-mint/20 px-3 py-1 text-xs font-semibold text-primary">+12% fokus</span>
+              <span className="rounded-full bg-mint/20 px-3 py-1 text-xs font-semibold text-primary">
+                +12% fokus
+              </span>
             </div>
             <div className="mt-6">
               <MoodChart variant="school" />
@@ -49,11 +53,15 @@ export function MoodSplit() {
                   <Home className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sore – Malam</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Sore – Malam
+                  </p>
                   <h3 className="text-lg font-bold">Mood di Rumah</h3>
                 </div>
               </div>
-              <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">Perlu perhatian</span>
+              <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">
+                Perlu perhatian
+              </span>
             </div>
             <div className="mt-6">
               <MoodChart variant="home" />

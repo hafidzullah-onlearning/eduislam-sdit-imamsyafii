@@ -1,10 +1,22 @@
 // Real Lovable Cloud auth wrapper. Filename kept for import stability.
-import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from "react";
 import type { Session as SupaSession } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Role } from "@/mocks/types";
-import { loadAllFromSupabase, subscribeToAllRealtime, unsubscribeFromAllRealtime, useDB } from "@/lib/mock-store";
-
+import {
+  loadAllFromSupabase,
+  subscribeToAllRealtime,
+  unsubscribeFromAllRealtime,
+  useDB,
+} from "@/lib/mock-store";
 
 interface AppUser {
   id: string;
@@ -37,9 +49,16 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | null>(null);
 const ACTIVE_SISWA_KEY = "eduislam-active-siswa";
 
-async function loadProfileAndRole(userId: string, authEmail?: string): Promise<{ user: AppUser | null; activeSiswaId?: string }> {
+async function loadProfileAndRole(
+  userId: string,
+  authEmail?: string,
+): Promise<{ user: AppUser | null; activeSiswaId?: string }> {
   const [{ data: profile }, { data: roles }, { data: siswa }] = await Promise.all([
-    supabase.from("profiles").select("id, nama, email, phone, avatar_url").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("id, nama, email, phone, avatar_url")
+      .eq("id", userId)
+      .maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", userId),
     supabase.from("siswa").select("id").eq("orang_tua_id", userId).order("nama").limit(1),
   ]);
@@ -47,22 +66,31 @@ async function loadProfileAndRole(userId: string, authEmail?: string): Promise<{
   let activeProfile = profile;
 
   if (!activeProfile) {
-    console.log("Profile not found in database. Attempting to create fallback profile on the fly...");
+    console.log(
+      "Profile not found in database. Attempting to create fallback profile on the fly...",
+    );
     const { data: supaUser } = await supabase.auth.getUser();
     const finalEmail = supaUser?.user?.email || authEmail || "";
     if (supaUser?.user || authEmail) {
       const email = finalEmail;
-      const nama = supaUser?.user?.user_metadata?.nama || supaUser?.user?.user_metadata?.full_name || supaUser?.user?.user_metadata?.name || email.split("@")[0] || "Pengguna";
+      const nama =
+        supaUser?.user?.user_metadata?.nama ||
+        supaUser?.user?.user_metadata?.full_name ||
+        supaUser?.user?.user_metadata?.name ||
+        email.split("@")[0] ||
+        "Pengguna";
       const { data: newProfile, error: insErr } = await supabase
         .from("profiles")
-        .insert([{
-          id: userId,
-          nama: nama,
-          email: email,
-        }])
+        .insert([
+          {
+            id: userId,
+            nama: nama,
+            email: email,
+          },
+        ])
         .select()
         .maybeSingle();
-      
+
       if (!insErr && newProfile) {
         activeProfile = newProfile;
       } else {
@@ -76,11 +104,10 @@ async function loadProfileAndRole(userId: string, authEmail?: string): Promise<{
   const rolePriority: Role[] = ["admin", "guru", "ortu"];
   let role = rolePriority.find((r) => roles?.some((x) => x.role === r)) ?? "ortu";
 
-  const userEmail = (activeProfile.email || authEmail || "").toLowerCase().trim();
-  if (userEmail === "hafidzullah.a@gmail.com") {
-    role = "admin";
-  }
-  const stored = typeof window !== "undefined" ? localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined : undefined;
+  const stored =
+    typeof window !== "undefined"
+      ? (localStorage.getItem(ACTIVE_SISWA_KEY) ?? undefined)
+      : undefined;
   const activeSiswaId = stored ?? siswa?.[0]?.id;
   return {
     user: {
@@ -122,14 +149,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user: u, activeSiswaId } = await loadProfileAndRole(s.user.id, s.user.email);
       setUser(u);
       setSession(u ? { userId: u.id, role: u.role, activeSiswaId } : null);
-      if (u) {
-        try {
-          await loadAllFromSupabase(u.id, u.email);
-          subscribeToAllRealtime();
-        } catch (err) {
-          console.error("Error loading data from Supabase:", err);
-        }
-      }
     } catch (err) {
       console.error("Error during hydration:", err);
     } finally {
@@ -154,7 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, nama: string) => {
-    const emailRedirectTo = typeof window !== "undefined" ? window.location.origin + "/app/dashboard" : undefined;
+    const emailRedirectTo =
+      typeof window !== "undefined" ? window.location.origin + "/app/dashboard" : undefined;
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -167,7 +187,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: typeof window !== "undefined" ? window.location.origin + "/app/dashboard" : undefined,
+        redirectTo:
+          typeof window !== "undefined" ? window.location.origin + "/app/dashboard" : undefined,
       },
     });
   };
@@ -191,7 +212,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ session, user, supaSession, ready, signInWithPassword, signUp, signInWithGoogle, signOut, setActiveSiswa, refresh }}
+      value={{
+        session,
+        user,
+        supaSession,
+        ready,
+        signInWithPassword,
+        signUp,
+        signInWithGoogle,
+        signOut,
+        setActiveSiswa,
+        refresh,
+      }}
     >
       {children}
     </Ctx.Provider>

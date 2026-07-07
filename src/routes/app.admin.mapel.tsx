@@ -1,13 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/common/PageHeader";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +90,7 @@ function MapelPage() {
 
     // Validate code uniqueness
     const codeExists = mapel.some(
-      (m) => m.kode.toUpperCase() === codeUpper && (!editingMapel || m.id !== editingMapel.id)
+      (m) => m.kode.toUpperCase() === codeUpper && (!editingMapel || m.id !== editingMapel.id),
     );
     if (codeExists) {
       return toast.error("Kode Mata Pelajaran sudah terdaftar! Harap gunakan kode unik.");
@@ -82,8 +101,8 @@ function MapelPage() {
         prev.map((m) =>
           m.id === editingMapel.id
             ? { ...m, nama: form.nama, kode: codeUpper, guruId: form.guruId }
-            : m
-        )
+            : m,
+        ),
       );
       toast.success(`Mata Pelajaran "${form.nama}" berhasil diperbarui`);
     } else {
@@ -146,7 +165,10 @@ function MapelPage() {
               mapel.map((m) => (
                 <TableRow key={m.id} className="hover:bg-surface-soft/30 transition">
                   <TableCell>
-                    <Badge variant="outline" className="font-mono bg-surface-soft text-foreground border-border/60">
+                    <Badge
+                      variant="outline"
+                      className="font-mono bg-surface-soft text-foreground border-border/60"
+                    >
                       {m.kode}
                     </Badge>
                   </TableCell>
@@ -191,7 +213,9 @@ function MapelPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="nama" className="text-xs font-semibold">Nama Mata Pelajaran</Label>
+              <Label htmlFor="nama" className="text-xs font-semibold">
+                Nama Mata Pelajaran
+              </Label>
               <Input
                 id="nama"
                 placeholder="Misal: Bahasa Arab, Fiqih, Sejarah Islam"
@@ -201,7 +225,9 @@ function MapelPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="kode" className="text-xs font-semibold">Kode Singkatan</Label>
+              <Label htmlFor="kode" className="text-xs font-semibold">
+                Kode Singkatan
+              </Label>
               <Input
                 id="kode"
                 placeholder="Misal: ARB, FIQ, SKI"
@@ -212,10 +238,7 @@ function MapelPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Guru Pengampu</Label>
-              <Select
-                value={form.guruId}
-                onValueChange={(v) => setForm({ ...form, guruId: v })}
-              >
+              <Select value={form.guruId} onValueChange={(v) => setForm({ ...form, guruId: v })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih Guru Pengampu" />
                 </SelectTrigger>
@@ -234,7 +257,10 @@ function MapelPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               {editingMapel ? "Simpan Perubahan" : "Tambah Mapel"}
             </Button>
           </DialogFooter>
@@ -245,18 +271,25 @@ function MapelPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive font-bold">Hapus Mata Pelajaran?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive font-bold">
+              Hapus Mata Pelajaran?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus mata pelajaran <strong>{mapelToDelete?.nama}</strong> ({mapelToDelete?.kode})?
+              Apakah Anda yakin ingin menghapus mata pelajaran{" "}
+              <strong>{mapelToDelete?.nama}</strong> ({mapelToDelete?.kode})?
               <br />
               <span className="text-xs text-destructive mt-1 block">
-                Tindakan ini tidak dapat dibatalkan. Riwayat tugas atau nilai terkait mata pelajaran ini juga dapat terpengaruh.
+                Tindakan ini tidak dapat dibatalkan. Riwayat tugas atau nilai terkait mata pelajaran
+                ini juga dapat terpengaruh.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus Mapel
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -265,4 +298,3 @@ function MapelPage() {
     </div>
   );
 }
-

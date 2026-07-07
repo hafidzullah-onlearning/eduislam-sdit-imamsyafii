@@ -42,7 +42,9 @@ export function MobileAppMock() {
           <div className="mt-3 rounded-2xl border border-border bg-surface-soft p-3">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-semibold text-muted-foreground">SPP November</p>
-              <span className="rounded-full bg-mint/20 px-2 py-0.5 text-[9px] font-bold text-primary">Lunas</span>
+              <span className="rounded-full bg-mint/20 px-2 py-0.5 text-[9px] font-bold text-primary">
+                Lunas
+              </span>
             </div>
             <p className="mt-0.5 text-sm font-extrabold">Rp 850.000</p>
           </div>

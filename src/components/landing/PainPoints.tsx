@@ -4,22 +4,19 @@ const PAIN = [
   {
     icon: MessageSquareWarning,
     title: "Guru kewalahan mengirim laporan satu per satu.",
-    body:
-      "Pesan WhatsApp tersebar, dokumen hilang di chat, dan laporan harian menyita waktu mengajar yang seharusnya untuk siswa.",
+    body: "Pesan WhatsApp tersebar, dokumen hilang di chat, dan laporan harian menyita waktu mengajar yang seharusnya untuk siswa.",
     tone: "from-rose-50 to-orange-50",
   },
   {
     icon: HeartPulse,
     title: "Kondisi psikologis siswa sulit dipantau.",
-    body:
-      "Tanpa data objektif, kejenuhan, stres, dan perubahan emosi anak baru terlihat ketika sudah memengaruhi nilai dan hafalan.",
+    body: "Tanpa data objektif, kejenuhan, stres, dan perubahan emosi anak baru terlihat ketika sudah memengaruhi nilai dan hafalan.",
     tone: "from-emerald-50 to-teal-50",
   },
   {
     icon: Wallet,
     title: "Pembayaran SPP & tunggakan sulit dipantau real-time.",
-    body:
-      "Pencatatan manual membuat laporan keuangan terlambat, tunggakan menumpuk, dan transparansi ke orang tua menjadi rendah.",
+    body: "Pencatatan manual membuat laporan keuangan terlambat, tunggakan menumpuk, dan transparansi ke orang tua menjadi rendah.",
     tone: "from-amber-50 to-yellow-50",
   },
 ];
@@ -36,8 +33,8 @@ export function PainPoints() {
             Mengapa Banyak Sekolah Islam Masih Terjebak Administrasi Manual?
           </h2>
           <p className="mt-5 text-lg text-muted-foreground">
-            Beban kerja yang terus bertumbuh tanpa sistem yang menyatukan akademik,
-            emosi anak, dan keuangan dalam satu tempat.
+            Beban kerja yang terus bertumbuh tanpa sistem yang menyatukan akademik, emosi anak, dan
+            keuangan dalam satu tempat.
           </p>
         </div>
 
@@ -54,12 +51,8 @@ export function PainPoints() {
                 <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary-soft text-primary">
                   <p.icon className="h-7 w-7" strokeWidth={1.8} />
                 </div>
-                <h3 className="mt-6 text-xl font-bold leading-tight text-foreground">
-                  {p.title}
-                </h3>
-                <p className="mt-3 text-base leading-[1.7] text-muted-foreground">
-                  {p.body}
-                </p>
+                <h3 className="mt-6 text-xl font-bold leading-tight text-foreground">{p.title}</h3>
+                <p className="mt-3 text-base leading-[1.7] text-muted-foreground">{p.body}</p>
               </div>
             </article>
           ))}

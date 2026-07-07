@@ -111,7 +111,8 @@ export interface Perilaku {
 }
 
 export type InvoiceStatus = "belum-bayar" | "menunggu" | "lunas" | "terlambat";
-export type PaymentMethod = "va-bca" | "va-mandiri" | "qris" | "gopay" | "ovo" | "dana" | "kartu-kredit";
+export type PaymentMethod =
+  "va-bca" | "va-mandiri" | "qris" | "gopay" | "ovo" | "dana" | "kartu-kredit";
 
 export interface Invoice {
   id: string;
@@ -188,4 +189,3 @@ export interface Materi {
   guruId: string;
   createdAt: string;
 }
-

@@ -15,8 +15,8 @@ export function Footer() {
               </span>
             </div>
             <p className="mt-5 max-w-sm text-sm leading-[1.7] text-muted-foreground">
-              Platform digital yang menyatukan akademik, hafalan Qur'an, mood
-              analytics, dan keuangan sekolah Islam dalam satu ekosistem.
+              Platform digital yang menyatukan akademik, hafalan Qur'an, mood analytics, dan
+              keuangan sekolah Islam dalam satu ekosistem.
             </p>
             <div className="mt-6 flex gap-2">
               {[Instagram, Linkedin, Youtube].map((I, i) => (
@@ -31,11 +31,16 @@ export function Footer() {
             </div>
           </div>
 
-          <FooterCol title="Produk" links={["Fitur Utama", "Mood Analytics", "Keuangan & SPP", "Hafalan Qur'an"]} />
+          <FooterCol
+            title="Produk"
+            links={["Fitur Utama", "Mood Analytics", "Keuangan & SPP", "Hafalan Qur'an"]}
+          />
           <FooterCol title="Perusahaan" links={["Tentang Kami", "Karier", "Blog", "Kontak"]} />
 
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-foreground">Hubungi Kami</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wider text-foreground">
+              Hubungi Kami
+            </h4>
             <ul className="mt-5 space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start gap-2.5">
                 <Mail className="mt-0.5 h-4 w-4 text-primary" />
@@ -56,8 +61,12 @@ export function Footer() {
         <div className="mt-14 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} EduIslam Connect. Hak Cipta Dilindungi.</p>
           <div className="flex shrink-0 gap-4">
-            <a href="#" className="hover:text-foreground">Kebijakan Privasi</a>
-            <a href="#" className="hover:text-foreground">Syarat & Ketentuan</a>
+            <a href="#" className="hover:text-foreground">
+              Kebijakan Privasi
+            </a>
+            <a href="#" className="hover:text-foreground">
+              Syarat & Ketentuan
+            </a>
           </div>
         </div>
       </div>
@@ -72,7 +81,9 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
       <ul className="mt-5 space-y-3 text-sm text-muted-foreground">
         {links.map((l) => (
           <li key={l}>
-            <a href="#" className="transition hover:text-foreground">{l}</a>
+            <a href="#" className="transition hover:text-foreground">
+              {l}
+            </a>
           </li>
         ))}
       </ul>

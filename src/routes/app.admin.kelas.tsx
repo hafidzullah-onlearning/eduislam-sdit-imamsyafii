@@ -1,12 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/common/PageHeader";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +69,8 @@ function KelasPage() {
       nama: "",
       tingkat: 1,
       waliKelasId: gurus[0]?.id || "",
-      tahunAjaran: tahunAjaranList.find((t) => t.aktif)?.nama || tahunAjaranList[0]?.nama || "2025/2026",
+      tahunAjaran:
+        tahunAjaranList.find((t) => t.aktif)?.nama || tahunAjaranList[0]?.nama || "2025/2026",
     });
     setOpen(true);
   };
@@ -82,8 +102,8 @@ function KelasPage() {
                 waliKelasId: form.waliKelasId,
                 tahunAjaran: form.tahunAjaran,
               }
-            : k
-        )
+            : k,
+        ),
       );
       toast.success(`Kelas "${form.nama}" berhasil diperbarui`);
     } else {
@@ -192,7 +212,9 @@ function KelasPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="nama" className="text-xs font-semibold">Nama Kelas</Label>
+              <Label htmlFor="nama" className="text-xs font-semibold">
+                Nama Kelas
+              </Label>
               <Input
                 id="nama"
                 placeholder="Misal: 3A, 4B, 1-Tahfidz"
@@ -202,7 +224,9 @@ function KelasPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="tingkat" className="text-xs font-semibold">Tingkat Sekolah</Label>
+              <Label htmlFor="tingkat" className="text-xs font-semibold">
+                Tingkat Sekolah
+              </Label>
               <Input
                 id="tingkat"
                 type="number"
@@ -256,7 +280,10 @@ function KelasPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               {editingKelas ? "Simpan Perubahan" : "Tambah Kelas"}
             </Button>
           </DialogFooter>
@@ -267,18 +294,25 @@ function KelasPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive font-bold">Hapus Data Kelas?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive font-bold">
+              Hapus Data Kelas?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus data kelas <strong>Kelas {kelasToDelete?.nama}</strong>?
+              Apakah Anda yakin ingin menghapus data kelas{" "}
+              <strong>Kelas {kelasToDelete?.nama}</strong>?
               <br />
               <span className="text-xs text-destructive mt-1 block">
-                Tindakan ini tidak dapat dibatalkan. Murid yang terdaftar pada kelas ini akan kehilangan asosiasi kelas mereka.
+                Tindakan ini tidak dapat dibatalkan. Murid yang terdaftar pada kelas ini akan
+                kehilangan asosiasi kelas mereka.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus Kelas
             </AlertDialogAction>
           </AlertDialogFooter>

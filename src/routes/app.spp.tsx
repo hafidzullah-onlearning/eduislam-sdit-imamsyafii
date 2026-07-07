@@ -8,16 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth/mock-auth";
-import { useDB } from "@/lib/mock-store";
+import { useDB, useLazyLoadTables } from "@/lib/mock-store";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
 export const Route = createFileRoute("/app/spp")({ component: SPPPage });
 
 function SPPPage() {
+  const loading = useLazyLoadTables(["invoice"]);
   const { user } = useAuth();
   const siswa = useDB((s) => s.siswa);
   const invoices = useDB((s) => s.invoice);
+
   const [tab, setTab] = useState<"aktif" | "lunas">("aktif");
 
   const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif");
@@ -26,12 +28,31 @@ function SPPPage() {
   const total = mine.filter((i) => i.status !== "lunas").reduce((a, b) => a + b.jumlah, 0);
   const lunasCount = mine.filter((i) => i.status === "lunas").length;
 
+  if (loading) {
+    return (
+      <div className="flex h-48 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title="SPP & Tagihan" description="Kelola dan bayar tagihan sekolah anak Anda." />
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total tagihan aktif" value={`Rp ${total.toLocaleString("id-ID")}`} icon={Wallet} tone={total > 0 ? "warning" : "success"} />
-        <StatCard label="Sudah lunas" value={lunasCount} icon={CheckCircle2} tone="success" hint="tagihan bulan ini" />
+        <StatCard
+          label="Total tagihan aktif"
+          value={`Rp ${total.toLocaleString("id-ID")}`}
+          icon={Wallet}
+          tone={total > 0 ? "warning" : "success"}
+        />
+        <StatCard
+          label="Sudah lunas"
+          value={lunasCount}
+          icon={CheckCircle2}
+          tone="success"
+          hint="tagihan bulan ini"
+        />
         <StatCard label="Anak terdaftar" value={anak.length} icon={Wallet} />
       </div>
 
@@ -43,28 +64,67 @@ function SPPPage() {
       </Tabs>
 
       {list.length === 0 ? (
-        <EmptyState icon={CheckCircle2} title={tab === "aktif" ? "Alhamdulillah, tidak ada tagihan" : "Belum ada riwayat"} />
+        <EmptyState
+          icon={CheckCircle2}
+          title={tab === "aktif" ? "Alhamdulillah, tidak ada tagihan" : "Belum ada riwayat"}
+        />
       ) : (
         <div className="space-y-3">
           {list.map((inv) => {
             const s = anak.find((x) => x.id === inv.siswaId);
-            const icon = inv.status === "lunas" ? CheckCircle2 : inv.status === "terlambat" ? AlertCircle : Clock;
+            const icon =
+              inv.status === "lunas"
+                ? CheckCircle2
+                : inv.status === "terlambat"
+                  ? AlertCircle
+                  : Clock;
             const Icon = icon;
-            const tone = inv.status === "lunas" ? "text-emerald-600 bg-emerald-500/10" : inv.status === "terlambat" ? "text-red-600 bg-red-500/10" : "text-amber-600 bg-amber-500/10";
+            const tone =
+              inv.status === "lunas"
+                ? "text-emerald-600 bg-emerald-500/10"
+                : inv.status === "terlambat"
+                  ? "text-red-600 bg-red-500/10"
+                  : "text-amber-600 bg-amber-500/10";
             return (
-              <Link key={inv.id} to="/app/spp/$id" params={{ id: inv.id }} className="block rounded-2xl border border-border/60 bg-card p-5 shadow-soft transition hover:border-primary/50">
+              <Link
+                key={inv.id}
+                to="/app/spp/$id"
+                params={{ id: inv.id }}
+                className="block rounded-2xl border border-border/60 bg-card p-5 shadow-soft transition hover:border-primary/50"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className={`grid h-11 w-11 place-items-center rounded-xl ${tone}`}><Icon className="h-5 w-5" /></div>
+                    <div className={`grid h-11 w-11 place-items-center rounded-xl ${tone}`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
                     <div>
-                      <p className="font-bold capitalize">{inv.jenis} • {inv.bulan}</p>
-                      <p className="text-xs text-muted-foreground">{s?.nama} • Jatuh tempo {format(new Date(inv.jatuhTempo), "dd MMM yyyy", { locale: idLocale })}</p>
+                      <p className="font-bold capitalize">
+                        {inv.jenis} • {inv.bulan}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {s?.nama} • Jatuh tempo{" "}
+                        {format(new Date(inv.jatuhTempo), "dd MMM yyyy", { locale: idLocale })}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-extrabold">Rp {inv.jumlah.toLocaleString("id-ID")}</p>
-                    <Badge variant={inv.status === "lunas" ? "default" : inv.status === "terlambat" ? "destructive" : "secondary"}>
-                      {inv.status === "lunas" ? "Lunas" : inv.status === "terlambat" ? "Terlambat" : "Belum bayar"}
+                    <p className="text-lg font-extrabold">
+                      Rp {inv.jumlah.toLocaleString("id-ID")}
+                    </p>
+                    <Badge
+                      variant={
+                        inv.status === "lunas"
+                          ? "default"
+                          : inv.status === "terlambat"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                    >
+                      {inv.status === "lunas"
+                        ? "Lunas"
+                        : inv.status === "terlambat"
+                          ? "Terlambat"
+                          : "Belum bayar"}
                     </Badge>
                   </div>
                 </div>

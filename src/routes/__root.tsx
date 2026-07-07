@@ -76,13 +76,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "EduIslam Connect" },
-      { name: "description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
+      {
+        name: "description",
+        content:
+          "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments.",
+      },
       { property: "og:title", content: "EduIslam Connect" },
-      { property: "og:description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
+      {
+        property: "og:description",
+        content:
+          "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "EduIslam Connect" },
-      { name: "twitter:description", content: "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments." },
+      {
+        name: "twitter:description",
+        content:
+          "EduIslam Connect modernizes Islamic schools by integrating academics, Quran memorization, mood analytics, parent communication, and SPP payments.",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

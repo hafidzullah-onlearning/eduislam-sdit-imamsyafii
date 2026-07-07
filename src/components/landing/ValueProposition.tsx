@@ -36,8 +36,8 @@ export function ValueProposition() {
             Satu Platform. Seluruh Operasional Sekolah Terintegrasi.
           </h2>
           <p className="mt-5 text-lg text-muted-foreground">
-            Dari ruang kelas hingga laporan keuangan yayasan — semua dalam satu
-            dashboard yang ringan dan mudah digunakan.
+            Dari ruang kelas hingga laporan keuangan yayasan — semua dalam satu dashboard yang
+            ringan dan mudah digunakan.
           </p>
         </div>
 
@@ -54,9 +54,8 @@ export function ValueProposition() {
                 Pahami emosi siswa, bukan hanya nilainya.
               </h3>
               <p className="mt-4 max-w-md text-base leading-[1.7] text-primary-foreground/80">
-                Mood tracker berbasis emoji 3D untuk siswa, dipadu insight otomatis
-                untuk guru dan orang tua. Deteksi dini kejenuhan sebelum berdampak ke
-                akademik dan hafalan.
+                Mood tracker berbasis emoji 3D untuk siswa, dipadu insight otomatis untuk guru dan
+                orang tua. Deteksi dini kejenuhan sebelum berdampak ke akademik dan hafalan.
               </p>
 
               <div className="mt-8 grid flex-1 grid-cols-5 items-end gap-2 rounded-3xl bg-white/10 p-5 backdrop-blur">
@@ -97,9 +96,7 @@ export function ValueProposition() {
                 </span>
               </div>
               <h3 className="mt-5 text-xl font-bold text-foreground">{f.title}</h3>
-              <p className="mt-2 text-base leading-[1.7] text-muted-foreground">
-                {f.desc}
-              </p>
+              <p className="mt-2 text-base leading-[1.7] text-muted-foreground">{f.desc}</p>
               <ul className="mt-5 grid grid-cols-2 gap-2">
                 {f.bullets.map((b) => (
                   <li

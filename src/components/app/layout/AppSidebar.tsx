@@ -85,6 +85,7 @@ const navOrtu: { label: string; items: NavItem[] }[] = [
     label: "Kesejahteraan",
     items: [
       { title: "Mood Anak", url: "/app/mood", icon: Smile },
+      { title: "Perilaku", url: "/app/perilaku", icon: Heart },
       { title: "Catatan Guru", url: "/app/catatan", icon: MessageSquare },
     ],
   },

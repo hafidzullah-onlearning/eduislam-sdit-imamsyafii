@@ -8,22 +8,19 @@ const ITEMS = [
     img: principal,
     name: "Ust. Ahmad Fadli, M.Pd.",
     role: "Kepala Sekolah, SDIT Al-Hikmah",
-    body:
-      "Sejak menggunakan EduIslam, laporan keuangan yayasan jadi real-time dan komunikasi guru-orang tua lebih tertib. Kami bisa fokus pada tarbiyah, bukan administrasi.",
+    body: "Sejak menggunakan EduIslam, laporan keuangan yayasan jadi real-time dan komunikasi guru-orang tua lebih tertib. Kami bisa fokus pada tarbiyah, bukan administrasi.",
   },
   {
     img: teacher,
     name: "Ustadzah Nadia Rahmawati",
     role: "Guru Tahfidz Kelas 4",
-    body:
-      "Input hafalan dan mood siswa cukup beberapa ketukan. Saya bisa lihat pola siswa yang lelah dan mendiskusikannya dengan orang tua sebelum berdampak ke hafalan.",
+    body: "Input hafalan dan mood siswa cukup beberapa ketukan. Saya bisa lihat pola siswa yang lelah dan mendiskusikannya dengan orang tua sebelum berdampak ke hafalan.",
   },
   {
     img: parent,
     name: "Bunda Diana Maharani",
     role: "Orang Tua Siswa Kelas 5",
-    body:
-      "Saya tahu perkembangan akademik, hafalan, dan kondisi emosi anak setiap hari. Bayar SPP juga tinggal scan VA — tidak perlu transfer manual lagi.",
+    body: "Saya tahu perkembangan akademik, hafalan, dan kondisi emosi anak setiap hari. Bayar SPP juga tinggal scan VA — tidak perlu transfer manual lagi.",
   },
 ];
 
@@ -51,9 +48,7 @@ export function Testimonials() {
                   <Star key={i} className="h-4 w-4 fill-current" />
                 ))}
               </div>
-              <p className="mt-5 flex-1 text-base leading-[1.7] text-foreground">
-                "{t.body}"
-              </p>
+              <p className="mt-5 flex-1 text-base leading-[1.7] text-foreground">"{t.body}"</p>
               <div className="mt-6 flex items-center gap-3 border-t border-border/60 pt-5">
                 <img
                   src={t.img}

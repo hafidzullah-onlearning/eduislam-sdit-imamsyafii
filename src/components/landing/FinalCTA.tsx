@@ -6,10 +6,13 @@ export function FinalCTA() {
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[40px] bg-gradient-premium p-8 text-primary-foreground shadow-glow-emerald lg:p-20">
         <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-mint/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-          backgroundSize: "32px 32px",
-        }} />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            backgroundSize: "32px 32px",
+          }}
+        />
 
         <div className="relative mx-auto max-w-3xl text-center">
           <span className="inline-flex rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-gold-foreground shadow-glow-gold">
@@ -23,8 +26,8 @@ export function FinalCTA() {
             </span>
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-primary-foreground/80">
-            Jadwalkan demo bersama tim EduIslam dan lihat bagaimana teknologi dapat
-            memperkuat kolaborasi antara sekolah dan orang tua.
+            Jadwalkan demo bersama tim EduIslam dan lihat bagaimana teknologi dapat memperkuat
+            kolaborasi antara sekolah dan orang tua.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

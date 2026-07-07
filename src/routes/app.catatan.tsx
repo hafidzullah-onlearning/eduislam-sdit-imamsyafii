@@ -7,8 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth/mock-auth";
 import { useDB, genId } from "@/lib/mock-store";
 import { format } from "date-fns";
@@ -35,7 +48,9 @@ function GuruCatatan() {
   const [form, setForm] = useState({ siswaId: "", tipe: "positif" as const, isi: "" });
 
   const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
-  const mySiswa = siswa.filter((s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId));
+  const mySiswa = siswa.filter(
+    (s) => s.status !== "nonaktif" && myKelas.some((k) => k.id === s.kelasId),
+  );
 
   const list = catatan.filter((c) => mySiswa.some((s) => s.id === c.siswaId));
 
@@ -79,7 +94,10 @@ function GuruCatatan() {
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <Label>Siswa *</Label>
-                  <Select value={form.siswaId} onValueChange={(v) => setForm({ ...form, siswaId: v })}>
+                  <Select
+                    value={form.siswaId}
+                    onValueChange={(v) => setForm({ ...form, siswaId: v })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih siswa" />
                     </SelectTrigger>
@@ -94,7 +112,10 @@ function GuruCatatan() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Tipe *</Label>
-                  <Select value={form.tipe} onValueChange={(v: any) => setForm({ ...form, tipe: v })}>
+                  <Select
+                    value={form.tipe}
+                    onValueChange={(v: any) => setForm({ ...form, tipe: v })}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -126,45 +147,64 @@ function GuruCatatan() {
       />
 
       {list.length === 0 ? (
-        <EmptyState icon={MessageSquare} title="Belum ada catatan" description="Buat catatan pertama untuk memberikan apresiasi." />
+        <EmptyState
+          icon={MessageSquare}
+          title="Belum ada catatan"
+          description="Buat catatan pertama untuk memberikan apresiasi."
+        />
       ) : (
         <div className="space-y-3">
-          {list.slice().reverse().map((c) => {
-            const s = siswa.find((x) => x.id === c.siswaId);
-            return (
-              <div
-                key={c.id}
-                className={`flex items-start justify-between rounded-2xl border p-5 shadow-soft ${
-                  c.tipe === "positif"
-                    ? "border-emerald-500/30 bg-emerald-500/5"
-                    : c.tipe === "perlu-perhatian"
-                      ? "border-amber-500/30 bg-amber-500/5"
-                      : "border-border/60 bg-card"
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">{s?.nama}</span>
-                    <Badge variant={c.tipe === "positif" ? "default" : c.tipe === "perlu-perhatian" ? "destructive" : "secondary"}>
-                      {c.tipe === "positif" ? "Apresiasi" : c.tipe === "perlu-perhatian" ? "Perhatian" : "Info"}
-                    </Badge>
-                  </div>
-                  <p className="mt-2 text-sm text-foreground/90">{c.isi}</p>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {format(new Date(c.tanggal), "EEEE, dd MMMM yyyy", { locale: idLocale })}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => remove(c.id)}
+          {list
+            .slice()
+            .reverse()
+            .map((c) => {
+              const s = siswa.find((x) => x.id === c.siswaId);
+              return (
+                <div
+                  key={c.id}
+                  className={`flex items-start justify-between rounded-2xl border p-5 shadow-soft ${
+                    c.tipe === "positif"
+                      ? "border-emerald-500/30 bg-emerald-500/5"
+                      : c.tipe === "perlu-perhatian"
+                        ? "border-amber-500/30 bg-amber-500/5"
+                        : "border-border/60 bg-card"
+                  }`}
                 >
-                  Hapus
-                </Button>
-              </div>
-            );
-          })}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">{s?.nama}</span>
+                      <Badge
+                        variant={
+                          c.tipe === "positif"
+                            ? "default"
+                            : c.tipe === "perlu-perhatian"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {c.tipe === "positif"
+                          ? "Apresiasi"
+                          : c.tipe === "perlu-perhatian"
+                            ? "Perhatian"
+                            : "Info"}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm text-foreground/90">{c.isi}</p>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      {format(new Date(c.tanggal), "EEEE, dd MMMM yyyy", { locale: idLocale })}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => remove(c.id)}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              );
+            })}
         </div>
       )}
     </div>
@@ -176,20 +216,32 @@ function OrtuCatatan() {
   const { user, session } = useAuth();
   const siswa = useDB((s) => s.siswa);
   const catatan = useDB((s) => s.catatan);
-  const anak = siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").find((k) => k.id === session?.activeSiswaId);
+  const anak = siswa
+    .filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif")
+    .find((k) => k.id === session?.activeSiswaId);
   const list = anak ? catatan.filter((c) => c.siswaId === anak.id) : [];
   return (
     <div className="space-y-6">
-      <PageHeader title="Catatan Guru" description={`Perhatian dan apresiasi wali kelas untuk ${anak?.nama ?? "anak Anda"}.`} />
+      <PageHeader
+        title="Catatan Guru"
+        description={`Perhatian dan apresiasi wali kelas untuk ${anak?.nama ?? "anak Anda"}.`}
+      />
       {list.length === 0 ? (
         <EmptyState icon={MessageSquare} title="Belum ada catatan" />
       ) : (
         <div className="space-y-3">
           {list.map((c) => (
-            <div key={c.id} className={`rounded-2xl border p-5 shadow-soft ${c.tipe === "positif" ? "border-emerald-500/30 bg-emerald-500/5" : c.tipe === "perlu-perhatian" ? "border-amber-500/30 bg-amber-500/5" : "border-border/60 bg-card"}`}>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{c.tipe.replace("-", " ")}</p>
+            <div
+              key={c.id}
+              className={`rounded-2xl border p-5 shadow-soft ${c.tipe === "positif" ? "border-emerald-500/30 bg-emerald-500/5" : c.tipe === "perlu-perhatian" ? "border-amber-500/30 bg-amber-500/5" : "border-border/60 bg-card"}`}
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {c.tipe.replace("-", " ")}
+              </p>
               <p className="mt-2">{c.isi}</p>
-              <p className="mt-3 text-xs text-muted-foreground">{format(new Date(c.tanggal), "EEEE, dd MMMM yyyy", { locale: idLocale })}</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {format(new Date(c.tanggal), "EEEE, dd MMMM yyyy", { locale: idLocale })}
+              </p>
             </div>
           ))}
         </div>

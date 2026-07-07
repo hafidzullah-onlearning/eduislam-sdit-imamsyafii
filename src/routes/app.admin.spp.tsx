@@ -1,12 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/common/PageHeader";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,11 +87,13 @@ function SppTarifPage() {
       (t) =>
         t.tingkat === Number(form.tingkat) &&
         t.tahunAjaranId === form.tahunAjaranId &&
-        (!editingTarif || t.id !== editingTarif.id)
+        (!editingTarif || t.id !== editingTarif.id),
     );
     if (dupExists) {
       const yearName = tahunAjaranList.find((y) => y.id === form.tahunAjaranId)?.nama || "";
-      return toast.error(`Tarif untuk Tingkat ${form.tingkat} pada Tahun Ajaran ${yearName} sudah terdaftar!`);
+      return toast.error(
+        `Tarif untuk Tingkat ${form.tingkat} pada Tahun Ajaran ${yearName} sudah terdaftar!`,
+      );
     }
 
     if (editingTarif) {
@@ -85,8 +106,8 @@ function SppTarifPage() {
                 jumlah: Number(form.jumlah),
                 tahunAjaranId: form.tahunAjaranId,
               }
-            : t
-        )
+            : t,
+        ),
       );
       toast.success(`Tarif tingkat ${form.tingkat} berhasil diperbarui`);
     } else {
@@ -159,7 +180,9 @@ function SppTarifPage() {
                 const year = tahunAjaranList.find((y) => y.id === t.tahunAjaranId);
                 return (
                   <TableRow key={t.id} className="hover:bg-surface-soft/30 transition">
-                    <TableCell className="font-semibold">Tingkat {t.tingkat} (Kelas {t.tingkat})</TableCell>
+                    <TableCell className="font-semibold">
+                      Tingkat {t.tingkat} (Kelas {t.tingkat})
+                    </TableCell>
                     <TableCell>SPP Bulanan</TableCell>
                     <TableCell>Rp {t.jumlah.toLocaleString("id-ID")}</TableCell>
                     <TableCell>{year ? `Tahun ${year.nama}` : "—"}</TableCell>
@@ -222,7 +245,9 @@ function SppTarifPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="jumlah" className="text-xs font-semibold">Nominal SPP (Rupiah)</Label>
+              <Label htmlFor="jumlah" className="text-xs font-semibold">
+                Nominal SPP (Rupiah)
+              </Label>
               <Input
                 id="jumlah"
                 type="number"
@@ -257,7 +282,10 @@ function SppTarifPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               {editingTarif ? "Simpan Perubahan" : "Tambah Tarif"}
             </Button>
           </DialogFooter>
@@ -268,9 +296,12 @@ function SppTarifPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive font-bold">Hapus Tarif SPP?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive font-bold">
+              Hapus Tarif SPP?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus tarif SPP tingkat <strong>{tarifToDelete?.tingkat}</strong>?
+              Apakah Anda yakin ingin menghapus tarif SPP tingkat{" "}
+              <strong>{tarifToDelete?.tingkat}</strong>?
               <br />
               <span className="text-xs text-destructive mt-1 block">
                 Tindakan ini tidak dapat dibatalkan.
@@ -279,7 +310,10 @@ function SppTarifPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -288,4 +322,3 @@ function SppTarifPage() {
     </div>
   );
 }
-

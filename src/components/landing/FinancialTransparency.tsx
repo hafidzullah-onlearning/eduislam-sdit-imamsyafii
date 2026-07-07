@@ -32,10 +32,9 @@ export function FinancialTransparency() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && setVisible(true),
-      { threshold: 0.2 }
-    );
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setVisible(true), {
+      threshold: 0.2,
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -56,9 +55,8 @@ export function FinancialTransparency() {
               Keuangan Sekolah Lebih Transparan dan Terkontrol.
             </h2>
             <p className="mt-5 text-lg leading-[1.7] text-muted-foreground">
-              Pantau penerimaan SPP, kirim invoice otomatis, dan terima pembayaran
-              dari berbagai channel — semua dengan bukti digital yang rapi untuk
-              audit yayasan.
+              Pantau penerimaan SPP, kirim invoice otomatis, dan terima pembayaran dari berbagai
+              channel — semua dengan bukti digital yang rapi untuk audit yayasan.
             </p>
 
             <ul className="mt-8 grid gap-3">
@@ -67,7 +65,10 @@ export function FinancialTransparency() {
                 { icon: FileCheck2, t: "Invoice & kuitansi terbit otomatis untuk orang tua" },
                 { icon: Wallet, t: "Pembayaran tunai tetap terlacak dengan bukti digital" },
               ].map((it) => (
-                <li key={it.t} className="flex items-start gap-3 rounded-2xl border border-border/60 bg-background p-4 shadow-soft">
+                <li
+                  key={it.t}
+                  className="flex items-start gap-3 rounded-2xl border border-border/60 bg-background p-4 shadow-soft"
+                >
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
                     <it.icon className="h-5 w-5" />
                   </div>
@@ -88,7 +89,9 @@ export function FinancialTransparency() {
             <div className="rounded-3xl border border-border/60 bg-background p-5">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Penerimaan SPP</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Total Penerimaan SPP
+                  </p>
                   <p className="mt-1 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
                     Rp 1.052.300.000
                   </p>
@@ -109,14 +112,22 @@ export function FinancialTransparency() {
                 ))}
               </div>
               <div className="mt-2 flex justify-between text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                <span>Jan</span><span>Mar</span><span>Mei</span><span>Jul</span><span>Sep</span><span>Des</span>
+                <span>Jan</span>
+                <span>Mar</span>
+                <span>Mei</span>
+                <span>Jul</span>
+                <span>Sep</span>
+                <span>Des</span>
               </div>
             </div>
 
             <div className="mt-4 rounded-3xl border border-border/60 bg-background p-5">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-bold">Pembayaran Terbaru</p>
-                <a href="#" className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
+                >
                   Lihat semua <ArrowUpRight className="h-3.5 w-3.5" />
                 </a>
               </div>
@@ -131,9 +142,7 @@ export function FinancialTransparency() {
                       <span className="text-sm font-semibold tabular-nums">{r.amount}</span>
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                          r.status === "Lunas"
-                            ? "bg-mint/15 text-primary"
-                            : "bg-gold/15 text-gold"
+                          r.status === "Lunas" ? "bg-mint/15 text-primary" : "bg-gold/15 text-gold"
                         }`}
                       >
                         {r.status === "Lunas" && <Check className="h-3 w-3" strokeWidth={3} />}

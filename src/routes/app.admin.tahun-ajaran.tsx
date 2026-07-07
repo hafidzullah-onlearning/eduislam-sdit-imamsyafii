@@ -5,7 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -54,9 +60,7 @@ function TahunAjaranPage() {
       return toast.error("Format Tahun Ajaran harus YYYY/YYYY (Misal: 2026/2027)");
     }
 
-    const exists = tahunAjaranList.some(
-      (t) => t.nama.trim() === form.nama.trim()
-    );
+    const exists = tahunAjaranList.some((t) => t.nama.trim() === form.nama.trim());
     if (exists) {
       return toast.error("Tahun Ajaran ini sudah terdaftar!");
     }
@@ -70,9 +74,7 @@ function TahunAjaranPage() {
 
     if (form.aktif) {
       // If new year is active, set all others to inactive
-      patch("tahunAjaran", (prev) =>
-        [...prev.map((t) => ({ ...t, aktif: false })), newTa]
-      );
+      patch("tahunAjaran", (prev) => [...prev.map((t) => ({ ...t, aktif: false })), newTa]);
     } else {
       patch("tahunAjaran", (prev) => [...prev, newTa]);
     }
@@ -87,7 +89,7 @@ function TahunAjaranPage() {
       prev.map((t) => ({
         ...t,
         aktif: t.id === ta.id,
-      }))
+      })),
     );
     toast.success(`Tahun Ajaran "${ta.nama}" sekarang aktif`);
   };
@@ -130,7 +132,9 @@ function TahunAjaranPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Tahun Ajaran</p>
+                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                  Tahun Ajaran
+                </p>
                 <div className="flex gap-1">
                   {!r.aktif && (
                     <Button
@@ -181,7 +185,9 @@ function TahunAjaranPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="nama" className="text-xs font-semibold">Tahun Ajaran (Format: YYYY/YYYY)</Label>
+              <Label htmlFor="nama" className="text-xs font-semibold">
+                Tahun Ajaran (Format: YYYY/YYYY)
+              </Label>
               <Input
                 id="nama"
                 placeholder="Misal: 2026/2027"
@@ -206,7 +212,10 @@ function TahunAjaranPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               Simpan
             </Button>
           </DialogFooter>
@@ -217,18 +226,24 @@ function TahunAjaranPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive font-bold">Hapus Tahun Ajaran?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive font-bold">
+              Hapus Tahun Ajaran?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               Apakah Anda yakin ingin menghapus tahun ajaran <strong>{taToDelete?.nama}</strong>?
               <br />
               <span className="text-xs text-destructive mt-1 block">
-                Tindakan ini tidak dapat dibatalkan. Kelas yang terkait dengan periode ini akan kehilangan asosiasi tahun ajaran mereka.
+                Tindakan ini tidak dapat dibatalkan. Kelas yang terkait dengan periode ini akan
+                kehilangan asosiasi tahun ajaran mereka.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -237,4 +252,3 @@ function TahunAjaranPage() {
     </div>
   );
 }
-

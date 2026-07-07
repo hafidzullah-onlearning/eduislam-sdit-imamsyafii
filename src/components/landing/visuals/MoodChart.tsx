@@ -9,17 +9,29 @@ import {
 } from "recharts";
 
 const SCHOOL = [
-  { d: "Sen", v: 78 }, { d: "Sel", v: 82 }, { d: "Rab", v: 75 },
-  { d: "Kam", v: 80 }, { d: "Jum", v: 88 },
+  { d: "Sen", v: 78 },
+  { d: "Sel", v: 82 },
+  { d: "Rab", v: 75 },
+  { d: "Kam", v: 80 },
+  { d: "Jum", v: 88 },
 ];
 const HOME = [
-  { d: "Sen", v: 62 }, { d: "Sel", v: 58 }, { d: "Rab", v: 64 },
-  { d: "Kam", v: 50 }, { d: "Jum", v: 55 },
+  { d: "Sen", v: 62 },
+  { d: "Sel", v: 58 },
+  { d: "Rab", v: 64 },
+  { d: "Kam", v: 50 },
+  { d: "Jum", v: 55 },
 ];
 const DARK = [
-  { d: "W1", v: 70 }, { d: "W2", v: 72 }, { d: "W3", v: 65 },
-  { d: "W4", v: 78 }, { d: "W5", v: 60 }, { d: "W6", v: 74 },
-  { d: "W7", v: 82 }, { d: "W8", v: 68 }, { d: "W9", v: 86 },
+  { d: "W1", v: 70 },
+  { d: "W2", v: 72 },
+  { d: "W3", v: 65 },
+  { d: "W4", v: 78 },
+  { d: "W5", v: 60 },
+  { d: "W6", v: 74 },
+  { d: "W7", v: 82 },
+  { d: "W8", v: 68 },
+  { d: "W9", v: 86 },
 ];
 
 export function MoodChart({ variant }: { variant: "school" | "home" | "dark" }) {
@@ -28,8 +40,8 @@ export function MoodChart({ variant }: { variant: "school" | "home" | "dark" }) 
     variant === "school"
       ? "oklch(0.42 0.10 165)"
       : variant === "home"
-      ? "oklch(0.36 0.13 265)"
-      : "oklch(0.80 0.16 165)";
+        ? "oklch(0.36 0.13 265)"
+        : "oklch(0.80 0.16 165)";
   const id = `g-${variant}`;
   const grid = variant === "dark" ? "rgba(255,255,255,0.08)" : "var(--color-border)";
   const tick = variant === "dark" ? "rgba(255,255,255,0.6)" : "var(--color-muted-foreground)";

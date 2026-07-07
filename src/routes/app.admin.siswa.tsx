@@ -4,11 +4,30 @@ import { PageHeader } from "@/components/app/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useDB, genId } from "@/lib/mock-store";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -63,9 +82,7 @@ function AdminSiswaPage() {
   // Filter list
   const filteredList = useMemo(() => {
     return siswa.filter((s) => {
-      const matchesSearch =
-        s.nama.toLowerCase().includes(q.toLowerCase()) ||
-        s.nis.includes(q);
+      const matchesSearch = s.nama.toLowerCase().includes(q.toLowerCase()) || s.nis.includes(q);
       const matchesKelas = selectedKelasId === "all" || s.kelasId === selectedKelasId;
       const matchesStatus = selectedStatus === "all" || s.status === selectedStatus;
       return matchesSearch && matchesKelas && matchesStatus;
@@ -132,7 +149,7 @@ function AdminSiswaPage() {
 
     // NIS uniqueness validation
     const isNisTaken = siswa.some(
-      (s) => s.nis === form.nis && (!editingSiswa || s.id !== editingSiswa.id)
+      (s) => s.nis === form.nis && (!editingSiswa || s.id !== editingSiswa.id),
     );
     if (isNisTaken) {
       return toast.error("NIS sudah terdaftar! Harap gunakan NIS unik.");
@@ -147,7 +164,7 @@ function AdminSiswaPage() {
       }
 
       const emailExists = users.some(
-        (u) => u.email.toLowerCase() === form.parentEmail.toLowerCase()
+        (u) => u.email.toLowerCase() === form.parentEmail.toLowerCase(),
       );
       if (emailExists) {
         return toast.error("Email Orang Tua sudah digunakan. Harap gunakan email lain.");
@@ -183,8 +200,8 @@ function AdminSiswaPage() {
                 orangTuaId: finalOrangTuaId,
                 status: form.status,
               }
-            : s
-        )
+            : s,
+        ),
       );
       toast.success(`Data siswa "${form.nama}" berhasil diperbarui`);
     } else {
@@ -289,7 +306,9 @@ function AdminSiswaPage() {
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Baby className="h-10 w-10 text-muted-foreground/50" />
                     <p className="font-semibold text-sm">Tidak ada data siswa ditemukan</p>
-                    <p className="text-xs">Coba ubah kata kunci pencarian atau filter kelas Anda.</p>
+                    <p className="text-xs">
+                      Coba ubah kata kunci pencarian atau filter kelas Anda.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -305,18 +324,24 @@ function AdminSiswaPage() {
                         <p className="font-semibold text-foreground">{s.nama}</p>
                         {s.tanggalLahir && (
                           <p className="text-[10px] text-muted-foreground">
-                            Lahir: {format(new Date(s.tanggalLahir), "dd MMMM yyyy", { locale: idLocale })}
+                            Lahir:{" "}
+                            {format(new Date(s.tanggalLahir), "dd MMMM yyyy", { locale: idLocale })}
                           </p>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary text-xs font-bold px-2 py-0.5">
+                      <Badge
+                        variant="outline"
+                        className="border-primary/20 bg-primary/5 text-primary text-xs font-bold px-2 py-0.5"
+                      >
                         Kelas {k ? k.nama : "—"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${s.jenisKelamin === "L" ? "bg-blue-500/10 text-blue-700" : "bg-pink-500/10 text-pink-700"}`}>
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium ${s.jenisKelamin === "L" ? "bg-blue-500/10 text-blue-700" : "bg-pink-500/10 text-pink-700"}`}
+                      >
                         {s.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
                       </span>
                     </TableCell>
@@ -327,11 +352,19 @@ function AdminSiswaPage() {
                           <p className="text-xs text-muted-foreground">{parent.email || "—"}</p>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground/60 italic">Belum terhubung</span>
+                        <span className="text-xs text-muted-foreground/60 italic">
+                          Belum terhubung
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={s.status === "aktif" ? "bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15" : "bg-muted text-muted-foreground hover:bg-muted/80"}>
+                      <Badge
+                        className={
+                          s.status === "aktif"
+                            ? "bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }
+                      >
                         {s.status === "aktif" ? "Aktif" : "Nonaktif"}
                       </Badge>
                     </TableCell>
@@ -374,10 +407,14 @@ function AdminSiswaPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Informasi Akademis & Profil</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+              Informasi Akademis & Profil
+            </h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="nis" className="text-xs font-semibold">NIS (Nomor Induk Siswa)</Label>
+                <Label htmlFor="nis" className="text-xs font-semibold">
+                  NIS (Nomor Induk Siswa)
+                </Label>
                 <Input
                   id="nis"
                   placeholder="Misal: 24001"
@@ -387,7 +424,9 @@ function AdminSiswaPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="nama" className="text-xs font-semibold">Nama Lengkap Siswa</Label>
+                <Label htmlFor="nama" className="text-xs font-semibold">
+                  Nama Lengkap Siswa
+                </Label>
                 <Input
                   id="nama"
                   placeholder="Misal: Muhammad Faris"
@@ -415,7 +454,9 @@ function AdminSiswaPage() {
               </div>
 
               <div className="space-y-1.5 col-span-1">
-                <Label htmlFor="tanggalLahir" className="text-xs font-semibold">Tanggal Lahir</Label>
+                <Label htmlFor="tanggalLahir" className="text-xs font-semibold">
+                  Tanggal Lahir
+                </Label>
                 <Input
                   id="tanggalLahir"
                   type="date"
@@ -473,8 +514,12 @@ function AdminSiswaPage() {
                 className="w-full space-y-3"
               >
                 <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="select" className="text-xs">Hubungkan Akun Terdaftar</TabsTrigger>
-                  <TabsTrigger value="create" className="text-xs">Buat Akun Wali Baru</TabsTrigger>
+                  <TabsTrigger value="select" className="text-xs">
+                    Hubungkan Akun Terdaftar
+                  </TabsTrigger>
+                  <TabsTrigger value="create" className="text-xs">
+                    Buat Akun Wali Baru
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="select" className="space-y-3">
@@ -498,10 +543,15 @@ function AdminSiswaPage() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="create" className="space-y-3 rounded-xl border border-dashed border-border p-3 bg-surface-soft/45">
+                <TabsContent
+                  value="create"
+                  className="space-y-3 rounded-xl border border-dashed border-border p-3 bg-surface-soft/45"
+                >
                   <div className="space-y-2">
                     <div className="space-y-1">
-                      <Label htmlFor="parentName" className="text-[11px] font-semibold">Nama Lengkap Orang Tua</Label>
+                      <Label htmlFor="parentName" className="text-[11px] font-semibold">
+                        Nama Lengkap Orang Tua
+                      </Label>
                       <Input
                         id="parentName"
                         placeholder="Misal: Bapak Ridwan"
@@ -512,7 +562,9 @@ function AdminSiswaPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <Label htmlFor="parentEmail" className="text-[11px] font-semibold">Email (Untuk Login)</Label>
+                        <Label htmlFor="parentEmail" className="text-[11px] font-semibold">
+                          Email (Untuk Login)
+                        </Label>
                         <Input
                           id="parentEmail"
                           type="email"
@@ -523,7 +575,9 @@ function AdminSiswaPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label htmlFor="parentPhone" className="text-[11px] font-semibold">No. Handphone (WA)</Label>
+                        <Label htmlFor="parentPhone" className="text-[11px] font-semibold">
+                          No. Handphone (WA)
+                        </Label>
                         <Input
                           id="parentPhone"
                           placeholder="+62 8..."
@@ -534,7 +588,8 @@ function AdminSiswaPage() {
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground italic">
-                      * Akun wali baru akan dibuat secara otomatis di database. Wali murid dapat langsung login menggunakan email yang didaftarkan.
+                      * Akun wali baru akan dibuat secara otomatis di database. Wali murid dapat
+                      langsung login menggunakan email yang didaftarkan.
                     </p>
                   </div>
                 </TabsContent>
@@ -546,7 +601,10 @@ function AdminSiswaPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               {editingSiswa ? "Simpan Perubahan" : "Simpan Siswa"}
             </Button>
           </DialogFooter>
@@ -561,16 +619,21 @@ function AdminSiswaPage() {
               Hapus Data Siswa?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus data murid <strong>{siswaToDelete?.nama}</strong> (NIS: {siswaToDelete?.nis})?
+              Apakah Anda yakin ingin menghapus data murid <strong>{siswaToDelete?.nama}</strong>{" "}
+              (NIS: {siswaToDelete?.nis})?
               <br />
               <span className="text-xs text-destructive mt-1 block">
-                Tindakan ini tidak dapat dibatalkan. Riwayat data akademik dan tahfidz yang terkait dengan siswa ini juga dapat terpengaruh.
+                Tindakan ini tidak dapat dibatalkan. Riwayat data akademik dan tahfidz yang terkait
+                dengan siswa ini juga dapat terpengaruh.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Hapus Siswa
             </AlertDialogAction>
           </AlertDialogFooter>
