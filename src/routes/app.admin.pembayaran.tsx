@@ -33,7 +33,7 @@ function PembayaranPage() {
   const patch = useDB((s) => s.patch);
 
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<"all" | "lunas" | "belum-bayar" | "terlambat">("all");
+  const [status, setStatus] = useState<"all" | "lunas" | "belum-bayar" | "menunggu" | "terlambat">("all");
 
   // New Invoice form state
   const [addOpen, setAddOpen] = useState(false);
@@ -49,7 +49,7 @@ function PembayaranPage() {
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [selectedInv, setSelectedInv] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({
-    metode: "va-bca" as const,
+    metode: "va-bca" as any,
     referensi: "",
   });
 
@@ -116,8 +116,8 @@ function PembayaranPage() {
   const handleOpenVerify = (inv: any) => {
     setSelectedInv(inv);
     setPaymentForm({
-      metode: "va-bca",
-      referensi: "",
+      metode: inv.metode || "va-bca",
+      referensi: inv.referensi || "",
     });
     setVerifyOpen(true);
   };
@@ -139,7 +139,53 @@ function PembayaranPage() {
       )
     );
 
+    const s = siswa.find((x) => x.id === selectedInv.siswaId);
+    patch("audit", (prev) => [
+      ...prev,
+      {
+        id: genId("audit"),
+        userId: "admin-user",
+        aksi: "VERIFIKASI_SPP_SETUJU",
+        target: `Invoice #${selectedInv.id} - ${s?.nama}`,
+        tanggal: new Date().toISOString(),
+      },
+    ]);
+
     toast.success(`Pembayaran untuk tagihan ${selectedInv.jenis} periode ${selectedInv.bulan} berhasil diverifikasi`);
+    setVerifyOpen(false);
+    setSelectedInv(null);
+  };
+
+  const handleVerifyReject = () => {
+    if (!selectedInv) return;
+
+    patch("invoice", (prev) =>
+      prev.map((i) =>
+        i.id === selectedInv.id
+          ? {
+              ...i,
+              status: "belum-bayar" as const,
+              metode: undefined,
+              referensi: undefined,
+              dibayarPada: undefined,
+            }
+          : i
+      )
+    );
+
+    const s = siswa.find((x) => x.id === selectedInv.siswaId);
+    patch("audit", (prev) => [
+      ...prev,
+      {
+        id: genId("audit"),
+        userId: "admin-user",
+        aksi: "VERIFIKASI_SPP_TOLAK",
+        target: `Invoice #${selectedInv.id} - ${s?.nama}`,
+        tanggal: new Date().toISOString(),
+      },
+    ]);
+
+    toast.error(`Konfirmasi pembayaran untuk tagihan ${selectedInv.jenis} ditolak.`);
     setVerifyOpen(false);
     setSelectedInv(null);
   };
@@ -184,6 +230,7 @@ function PembayaranPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua status</SelectItem>
+            <SelectItem value="menunggu">Menunggu Verifikasi</SelectItem>
             <SelectItem value="lunas">Lunas</SelectItem>
             <SelectItem value="belum-bayar">Belum bayar</SelectItem>
             <SelectItem value="terlambat">Terlambat</SelectItem>
@@ -226,8 +273,23 @@ function PembayaranPage() {
                     <TableCell className="capitalize">{i.jenis}</TableCell>
                     <TableCell>Rp {i.jumlah.toLocaleString("id-ID")}</TableCell>
                     <TableCell>
-                      <Badge variant={i.status === "lunas" ? "default" : i.status === "terlambat" ? "destructive" : "secondary"}>
-                        {i.status}
+                      <Badge
+                        variant={
+                          i.status === "lunas"
+                            ? "default"
+                            : i.status === "menunggu"
+                              ? "secondary"
+                              : i.status === "terlambat"
+                                ? "destructive"
+                                : "outline"
+                        }
+                        className={
+                          i.status === "menunggu"
+                            ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/10 animate-pulse font-semibold"
+                            : ""
+                        }
+                      >
+                        {i.status === "menunggu" ? "menunggu verifikasi" : i.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -245,11 +307,15 @@ function PembayaranPage() {
                         <div className="flex justify-end gap-1.5">
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant={i.status === "menunggu" ? "default" : "outline"}
                             onClick={() => handleOpenVerify(i)}
-                            className="h-8 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/5"
+                            className={`h-8 text-xs ${
+                              i.status === "menunggu"
+                                ? "bg-amber-600 hover:bg-amber-700 text-white"
+                                : "border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/5"
+                            }`}
                           >
-                            <Check className="mr-1 h-3.5 w-3.5" /> Verifikasi
+                            <Check className="mr-1 h-3.5 w-3.5" /> {i.status === "menunggu" ? "Periksa Bukti" : "Verifikasi"}
                           </Button>
                           <Button
                             size="sm"
@@ -370,7 +436,9 @@ function PembayaranPage() {
       <Dialog open={verifyOpen} onOpenChange={setVerifyOpen}>
         <DialogContent className="max-w-md bg-card text-card-foreground">
           <DialogHeader>
-            <DialogTitle className="font-bold text-lg">Verifikasi Pembayaran Manual</DialogTitle>
+            <DialogTitle className="font-bold text-lg">
+              {selectedInv?.status === "menunggu" ? "Periksa Bukti Pembayaran" : "Verifikasi Pembayaran Manual"}
+            </DialogTitle>
           </DialogHeader>
 
           {selectedInv && (
@@ -379,6 +447,11 @@ function PembayaranPage() {
                 <p><strong>Tagihan:</strong> <span className="capitalize">{selectedInv.jenis}</span> ({selectedInv.bulan})</p>
                 <p><strong>Nominal:</strong> Rp {selectedInv.jumlah.toLocaleString("id-ID")}</p>
                 <p><strong>Siswa:</strong> {siswa.find((x) => x.id === selectedInv.siswaId)?.nama}</p>
+                {selectedInv.referensi && (
+                  <p className="mt-2 text-amber-600 bg-amber-500/5 p-2 rounded-lg border border-amber-500/20">
+                    <strong>Referensi dari Ortu:</strong> {selectedInv.referensi}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -397,6 +470,7 @@ function PembayaranPage() {
                     <SelectItem value="gopay">Direct GoPay</SelectItem>
                     <SelectItem value="ovo">Direct OVO</SelectItem>
                     <SelectItem value="dana">Direct DANA</SelectItem>
+                    <SelectItem value="kartu-kredit">Kartu Kredit / Debit</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -413,13 +487,24 @@ function PembayaranPage() {
             </div>
           )}
 
-          <DialogFooter className="border-t border-border/60 pt-3">
-            <Button variant="ghost" onClick={() => setVerifyOpen(false)}>
-              Batal
-            </Button>
-            <Button onClick={handleVerifyConfirm} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              Konfirmasi Lunas
-            </Button>
+          <DialogFooter className="border-t border-border/60 pt-3 flex justify-between items-center gap-2">
+            {selectedInv?.status === "menunggu" && (
+              <Button
+                variant="outline"
+                onClick={handleVerifyReject}
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+              >
+                Tolak Bukti
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button variant="ghost" onClick={() => setVerifyOpen(false)}>
+                Batal
+              </Button>
+              <Button onClick={handleVerifyConfirm} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                Setujui & Konfirmasi Lunas
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

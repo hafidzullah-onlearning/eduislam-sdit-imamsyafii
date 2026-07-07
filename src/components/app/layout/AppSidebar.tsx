@@ -76,6 +76,7 @@ const navOrtu: { label: string; items: NavItem[] }[] = [
       { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard },
       { title: "Daftar Anak", url: "/app/anak", icon: Baby },
       { title: "Tugas", url: "/app/tugas", icon: ClipboardList },
+      { title: "Materi", url: "/app/materi", icon: BookOpen },
       { title: "Tahfidz", url: "/app/tahfidz", icon: BookMarked },
       { title: "Nilai & Rapor", url: "/app/nilai", icon: Award },
     ],

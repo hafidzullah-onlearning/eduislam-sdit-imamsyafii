@@ -38,9 +38,9 @@ function getGeminiApiKey() {
 }
 
 // Server function for generating material learning instructions via Gemini AI
-export const generateMateriInstructions = createServerFn(
-  "POST",
-  async (data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => {
+export const generateMateriInstructions = createServerFn({ method: "POST" })
+  .validator((data: { judul: string; mapelName: string; kelasName: string; linkUrl: string }) => data)
+  .handler(async ({ data }) => {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured on the server");
@@ -85,8 +85,7 @@ Gunakan gaya bahasa yang santun, hangat, bernuansa Islami (menggunakan Assalamu'
     }
 
     return { text: generatedText };
-  }
-);
+  });
 
 // High-quality local rule-based fallback generator
 const generateLocalInstructions = (judul: string, mapelName: string, kelasName: string, linkUrl: string) => {
@@ -121,33 +120,26 @@ interface Materi {
 }
 
 function MateriPage() {
-  const { user } = useAuth();
+  const { session, user } = useAuth();
+  const isGuru = user?.role === "guru";
+  const isOrtu = user?.role === "ortu";
+  const isAdmin = user?.role === "admin";
+
   const kelas = useDB((s) => s.kelas);
   const mapel = useDB((s) => s.mapel);
-  const myKelas = kelas.filter((k) => k.waliKelasId === user?.id);
+  const siswa = useDB((s) => s.siswa);
+  const materiList = useDB((s) => s.materi);
+  const patch = useDB((s) => s.patch);
+
+  const myKelas = isGuru ? kelas.filter((k) => k.waliKelasId === user?.id) : [];
+
+  const anak = isOrtu
+    ? siswa.filter((s) => s.orangTuaId === user?.id && s.status !== "nonaktif").find((k) => k.id === session?.activeSiswaId)
+    : null;
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ judul: "", deskripsi: "", linkUrl: "", kelasId: "", mapelId: "" });
-  const [materiList, setMateriList] = useState<Materi[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("eduislam_materi");
-    if (saved) {
-      try {
-        setMateriList(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, []);
-
-  // Save to localStorage when list changes
-  const saveToStorage = (newList: Materi[]) => {
-    setMateriList(newList);
-    localStorage.setItem("eduislam_materi", JSON.stringify(newList));
-  };
 
   const handleSave = () => {
     if (!form.judul || !form.kelasId || !form.mapelId) {
@@ -165,16 +157,14 @@ function MateriPage() {
       createdAt: new Date().toISOString(),
     };
 
-    const newList = [...materiList, newMateri];
-    saveToStorage(newList);
+    patch("materi", (prev) => [...prev, newMateri]);
     toast.success("Materi berhasil dibagikan");
     setOpen(false);
     setForm({ judul: "", deskripsi: "", linkUrl: "", kelasId: "", mapelId: "" });
   };
 
   const handleDelete = (id: string) => {
-    const newList = materiList.filter((m) => m.id !== id);
-    saveToStorage(newList);
+    patch("materi", (prev) => prev.filter((m) => m.id !== id));
     toast.success("Materi berhasil dihapus");
   };
 
@@ -221,108 +211,126 @@ function MateriPage() {
     }
   };
 
-  // Filter list to show materials for classes the teacher manages
-  const list = materiList.filter((m) => myKelas.some((k) => k.id === m.kelasId));
+  // Filter list of materials to show based on user role and active child
+  const list = isGuru
+    ? materiList.filter((m) => myKelas.some((k) => k.id === m.kelasId))
+    : isOrtu
+      ? (anak ? materiList.filter((m) => m.kelasId === anak.kelasId) : [])
+      : materiList;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Materi Pembelajaran"
-        description="Bagikan materi, video, dan bahan bacaan ke kelas yang Anda ampu."
+        description={
+          isOrtu
+            ? "Materi belajar dan petunjuk pendampingan belajar untuk Ananda di rumah."
+            : "Bagikan materi, video, dan bahan bacaan ke kelas yang Anda ampu."
+        }
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4" /> Materi baru
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Materi baru</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Judul Materi *</Label>
-                  <Input value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} placeholder="Contoh: Pengenalan Huruf Hijaiyah" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Mata Pelajaran *</Label>
-                    <Select value={form.mapelId} onValueChange={(v) => setForm({ ...form, mapelId: v })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mapel.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.nama}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Kelas Penerima *</Label>
-                    <Select value={form.kelasId} onValueChange={(v) => setForm({ ...form, kelasId: v })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {myKelas.map((k) => (
-                          <SelectItem key={k.id} value={k.id}>
-                            Kelas {k.nama}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>URL Sumber (Drive / YouTube / PDF)</Label>
-                  <Input value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} placeholder="https://..." />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label>Deskripsi / Petunjuk Belajar</Label>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs text-primary font-semibold hover:bg-primary/10 gap-1 px-2.5 rounded-full"
-                      onClick={handleGenerateAI}
-                      disabled={loadingAI}
-                    >
-                      {loadingAI ? (
-                        <>
-                          <span className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
-                          Menulis...
-                        </>
-                      ) : (
-                        "✨ Tulis dengan AI"
-                      )}
-                    </Button>
-                  </div>
-                  <Textarea
-                    value={form.deskripsi}
-                    onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
-                    placeholder="Tulis petunjuk belajar atau klik tombol di atas untuk generate otomatis oleh AI..."
-                    className="h-36 font-sans text-sm"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setOpen(false)}>
-                  Batal
+          (isGuru || isAdmin) ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4" /> Materi baru
                 </Button>
-                <Button onClick={handleSave}>Bagikan</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Materi baru</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label>Judul Materi *</Label>
+                    <Input value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} placeholder="Contoh: Pengenalan Huruf Hijaiyah" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label>Mata Pelajaran *</Label>
+                      <Select value={form.mapelId} onValueChange={(v) => setForm({ ...form, mapelId: v })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mapel.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Kelas Penerima *</Label>
+                      <Select value={form.kelasId} onValueChange={(v) => setForm({ ...form, kelasId: v })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {myKelas.map((k) => (
+                            <SelectItem key={k.id} value={k.id}>
+                              Kelas {k.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>URL Sumber (Drive / YouTube / PDF)</Label>
+                    <Input value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} placeholder="https://..." />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label>Deskripsi / Petunjuk Belajar</Label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-primary font-semibold hover:bg-primary/10 gap-1 px-2.5 rounded-full"
+                        onClick={handleGenerateAI}
+                        disabled={loadingAI}
+                      >
+                        {loadingAI ? (
+                          <>
+                            <span className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                            Menulis...
+                          </>
+                        ) : (
+                          "✨ Tulis dengan AI"
+                        )}
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={form.deskripsi}
+                      onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+                      placeholder="Tulis petunjuk belajar atau klik tombol di atas untuk generate otomatis oleh AI..."
+                      className="h-36 font-sans text-sm"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setOpen(false)}>
+                    Batal
+                  </Button>
+                  <Button onClick={handleSave}>Bagikan</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : undefined
         }
       />
 
       {list.length === 0 ? (
-        <EmptyState icon={BookOpen} title="Belum ada materi" description="Buat materi pertama Anda dan bagikan ke kelas." />
+        <EmptyState
+          icon={BookOpen}
+          title="Belum ada materi"
+          description={
+            isOrtu
+              ? "Belum ada materi pembelajaran yang dibagikan guru untuk kelas Ananda."
+              : "Buat materi pertama Anda dan bagikan ke kelas."
+          }
+        />
       ) : (
         <div className="space-y-3">
           {list.map((m) => {
@@ -355,14 +363,16 @@ function MateriPage() {
                       </div>
                     )}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 shrink-0"
-                    onClick={() => handleDelete(m.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {(isGuru || isAdmin) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive border-border/60 shrink-0"
+                      onClick={() => handleDelete(m.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             );

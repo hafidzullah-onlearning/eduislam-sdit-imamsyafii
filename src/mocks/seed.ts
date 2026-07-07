@@ -16,6 +16,7 @@ import type {
   User,
   TahunAjaran,
   SppTarif,
+  Materi,
 } from "./types";
 
 const today = new Date();
@@ -24,6 +25,8 @@ const dOffset = (days: number) => {
   d.setDate(d.getDate() + days);
   return d.toISOString();
 };
+
+export const seedMateri: Materi[] = [];
 
 export const seedUsers: User[] = [
   { id: "u-guru-1", name: "Ustadzah Aisyah Rahman", email: "aisyah@sdit.sch.id", role: "guru", phone: "+62 812-3456-7890" },
@@ -230,6 +233,7 @@ export const seed = {
   audit: seedAudit,
   tahunAjaran: seedTahunAjaran,
   sppTarif: seedSppTarif,
+  materi: seedMateri,
 };
 
 export type SeedShape = typeof seed;

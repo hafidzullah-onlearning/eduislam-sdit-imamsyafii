@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Building2, QrCode, Smartphone, CreditCard, Copy, Printer, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Building2, QrCode, Smartphone, CreditCard, Copy, Printer, CheckCircle2, Clock } from "lucide-react";
 import { PageHeader } from "@/components/app/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useDB, genId } from "@/lib/mock-store";
 import { useAuth } from "@/lib/auth/mock-auth";
 import { format } from "date-fns";
@@ -32,19 +34,93 @@ function InvoicePage() {
   const patch = useDB((s) => s.patch);
   const inv = invoices.find((i) => i.id === id);
   const [method, setMethod] = useState<PaymentMethod | null>(inv?.metode ?? null);
-  const [step, setStep] = useState<"pilih" | "instruksi" | "sukses">(inv?.status === "lunas" ? "sukses" : "pilih");
+  const [referensi, setReferensi] = useState(inv?.referensi ?? "");
+  const [step, setStep] = useState<"pilih" | "instruksi" | "sukses" | "menunggu">(
+    inv?.status === "lunas"
+      ? "sukses"
+      : inv?.status === "menunggu"
+        ? "menunggu"
+        : "pilih"
+  );
 
   if (!inv) return <p>Tagihan tidak ditemukan.</p>;
   const s = siswa.find((x) => x.id === inv.siswaId);
   const chosen = METHODS.find((m) => m.id === method);
   const vaNumber = chosen?.kode ? `${chosen.kode}${s?.nis ?? "0000"}${inv.jumlah.toString().slice(0, 4)}` : null;
 
-  const markPaid = () => {
+  const submitPayment = () => {
+    if (!referensi.trim()) {
+      return toast.error("Nomor referensi pembayaran wajib diisi.");
+    }
     patch("invoice", (items) =>
-      items.map((i) => (i.id === id ? { ...i, status: "lunas" as const, metode: method!, dibayarPada: new Date().toISOString(), referensi: genId("REF").toUpperCase() } : i)),
+      items.map((i) =>
+        i.id === id
+          ? {
+              ...i,
+              status: "menunggu" as const,
+              metode: method!,
+              referensi: referensi.trim(),
+            }
+          : i
+      )
     );
-    toast.success("Pembayaran berhasil dikonfirmasi. Jazakumullah khairan.");
-    setStep("sukses");
+    toast.success("Konfirmasi pembayaran berhasil dikirim. Menunggu verifikasi admin.");
+    setStep("menunggu");
+  };
+
+  const handleAdminVerify = (approve: boolean) => {
+    if (approve) {
+      patch("invoice", (items) =>
+        items.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                status: "lunas" as const,
+                dibayarPada: new Date().toISOString(),
+              }
+            : i
+        )
+      );
+      // Log audit
+      patch("audit", (prev) => [
+        ...prev,
+        {
+          id: genId("audit"),
+          userId: user?.id ?? "",
+          aksi: "VERIFIKASI_SPP_SETUJU",
+          target: `Invoice #${id} - ${s?.nama}`,
+          tanggal: new Date().toISOString(),
+        },
+      ]);
+      toast.success("Pembayaran berhasil diverifikasi.");
+      setStep("sukses");
+    } else {
+      patch("invoice", (items) =>
+        items.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                status: "belum-bayar" as const,
+                metode: undefined,
+                referensi: undefined,
+              }
+            : i
+        )
+      );
+      // Log audit
+      patch("audit", (prev) => [
+        ...prev,
+        {
+          id: genId("audit"),
+          userId: user?.id ?? "",
+          aksi: "VERIFIKASI_SPP_TOLAK",
+          target: `Invoice #${id} - ${s?.nama}`,
+          tanggal: new Date().toISOString(),
+        },
+      ]);
+      toast.error("Konfirmasi pembayaran ditolak.");
+      setStep("pilih");
+    }
   };
 
   return (
@@ -59,9 +135,59 @@ function InvoicePage() {
         actions={inv.status === "lunas" && <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4" /> Cetak</Button>}
       />
 
+      {user?.role === "admin" && inv.status === "menunggu" && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-3">
+          <h4 className="font-bold text-amber-800 flex items-center gap-1.5 text-sm">
+            <Clock className="h-4 w-4 text-amber-600 animate-pulse" /> Aksi Verifikasi Pembayaran (Admin)
+          </h4>
+          <p className="text-xs text-amber-700">
+            Orang Tua telah mengirimkan konfirmasi pembayaran. Periksa kecocokan data dengan mutasi rekening sebelum menyetujui.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+              onClick={() => handleAdminVerify(true)}
+            >
+              Setujui & Tandai Lunas
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30 gap-1"
+              onClick={() => handleAdminVerify(false)}
+            >
+              Tolak Konfirmasi
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft lg:col-span-2">
-          {step === "sukses" ? (
+          {step === "menunggu" ? (
+            <div className="py-8 text-center space-y-4">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/10 text-amber-600">
+                <Clock className="h-8 w-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-extrabold text-foreground">Menunggu Verifikasi</h3>
+                <p className="text-sm text-muted-foreground">
+                  Bukti pembayaran Anda sedang diperiksa oleh tim administrasi sekolah.
+                </p>
+              </div>
+              <div className="mx-auto max-w-sm rounded-xl border border-border/40 bg-surface-soft/40 p-4 text-left space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Metode</span>
+                  <span className="font-semibold">{chosen?.label || inv.metode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Referensi</span>
+                  <span className="font-semibold font-mono">{inv.referensi}</span>
+                </div>
+              </div>
+            </div>
+          ) : step === "sukses" ? (
             <div className="py-8 text-center">
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600">
                 <CheckCircle2 className="h-8 w-8" />
@@ -121,9 +247,30 @@ function InvoicePage() {
               {chosen?.group === "Kartu" && (
                 <p className="rounded-xl border border-border/60 bg-surface-soft/50 p-5 text-center text-sm">Anda akan diarahkan ke halaman pembayaran aman kartu.</p>
               )}
-              <div className="mt-6 flex gap-2">
-                <Button variant="outline" onClick={() => setStep("pilih")}>Ganti metode</Button>
-                <Button className="flex-1" onClick={markPaid}>Saya sudah bayar</Button>
+              <div className="space-y-4 rounded-xl border border-border/60 bg-surface-soft/30 p-5 mt-4 text-left">
+                <h4 className="text-sm font-bold text-foreground">Konfirmasi Pembayaran</h4>
+                <p className="text-xs text-muted-foreground">
+                  Masukkan nomor referensi transfer atau keterangan transaksi Anda untuk diverifikasi oleh admin.
+                </p>
+                <div className="space-y-1.5">
+                  <Label htmlFor="referensi-input">Nomor Referensi / Catatan Pembayaran *</Label>
+                  <Input
+                    id="referensi-input"
+                    value={referensi}
+                    onChange={(e) => setReferensi(e.target.value)}
+                    placeholder="Contoh: TRX123456789 atau Nama Pengirim"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setStep("pilih")}>Ganti metode</Button>
+                  <Button
+                    className="flex-1"
+                    disabled={!referensi.trim()}
+                    onClick={submitPayment}
+                  >
+                    Saya sudah bayar
+                  </Button>
+                </div>
               </div>
             </>
           )}

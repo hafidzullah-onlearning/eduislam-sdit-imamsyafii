@@ -24,6 +24,7 @@ export const tableMap: Record<string, string> = {
   audit: "audit_log",
   tahunAjaran: "tahun_ajaran",
   sppTarif: "spp_tarif",
+  materi: "materi",
 };
 
 // Static ID to UUID map for consistent seeding
@@ -143,6 +144,10 @@ export const useDB = create<Store>()(
 
         newItems = convertIdsToUuid(newItems);
 
+        const rollback = () => {
+          set((state) => ({ ...state, [key]: oldItems }));
+        };
+
         // Update local Zustand state immediately for fast UI feedback
         set((state) => ({ ...state, [key]: newItems }));
 
@@ -153,11 +158,11 @@ export const useDB = create<Store>()(
               // 1. Detect Inserts
               const added = newItems.filter((item) => !oldItems.some((old) => old.id === item.id));
               for (const item of added) {
-                const userId = toUuid(item.id);
+                const userId = toUuid(item.id)!;
                 const placeholderEmail = item.email || `${userId.slice(0, 8)}@sdit-placeholder.sch.id`;
                 
                 // Call public.create_user_admin RPC to create user in auth.users & public.profiles safely
-                const { error: rpcErr } = await supabase.rpc("create_user_admin", {
+                const { error: rpcErr } = await (supabase as any).rpc("create_user_admin", {
                   p_id: userId,
                   p_email: placeholderEmail,
                   p_password: "EduIslamDefaultPassword123!",
@@ -168,6 +173,8 @@ export const useDB = create<Store>()(
                 if (rpcErr) {
                   console.error("Error calling create_user_admin RPC:", rpcErr);
                   toast.error(`Gagal menyimpan user baru ke database: ${rpcErr.message}`);
+                  rollback();
+                  return;
                 } else {
                   // RPC succeeded. Safely update other profile fields (phone, avatar_url)
                   if (item.phone || item.avatar) {
@@ -175,7 +182,11 @@ export const useDB = create<Store>()(
                       phone: item.phone || null,
                       avatar_url: item.avatar || null
                     }).eq("id", userId);
-                    if (pErr) console.error("Error updating phone/avatar for new user:", pErr);
+                    if (pErr) {
+                      console.error("Error updating phone/avatar for new user:", pErr);
+                      rollback();
+                      return;
+                    }
                   }
                 }
               }
@@ -187,7 +198,7 @@ export const useDB = create<Store>()(
                 return JSON.stringify(old) !== JSON.stringify(item);
               });
               for (const item of updated) {
-                const userId = toUuid(item.id);
+                const userId = toUuid(item.id)!;
                 const { error: pErr } = await supabase.from("profiles").update({
                   nama: item.name,
                   email: item.email || null,
@@ -197,6 +208,8 @@ export const useDB = create<Store>()(
                 if (pErr) {
                   console.error("Error updating profile:", pErr);
                   toast.error(`Gagal memperbarui profil user di database: ${pErr.message}`);
+                  rollback();
+                  return;
                 }
 
                 const { error: rErr } = await supabase.from("user_roles").upsert({
@@ -206,23 +219,28 @@ export const useDB = create<Store>()(
                 if (rErr) {
                   console.error("Error upserting user role:", rErr);
                   toast.error(`Gagal memperbarui peran user di database: ${rErr.message}`);
+                  rollback();
+                  return;
                 }
               }
 
               // 3. Detect Deletions
               const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
               for (const item of deleted) {
-                const userId = toUuid(item.id);
-                const { error: rpcErr } = await supabase.rpc("delete_user_admin", {
+                const userId = toUuid(item.id)!;
+                const { error: rpcErr } = await (supabase as any).rpc("delete_user_admin", {
                   p_id: userId
                 });
                 if (rpcErr) {
                   console.error("Error calling delete_user_admin RPC:", rpcErr);
                   toast.error(`Gagal menghapus user dari database: ${rpcErr.message}`);
+                  rollback();
+                  return;
                 }
               }
             } catch (e) {
               console.error("Sync error on users patch:", e);
+              rollback();
             }
           })();
           return;
@@ -238,19 +256,21 @@ export const useDB = create<Store>()(
             for (const item of added) {
               const mapped = camelToSnake(item);
               if (key === "kelas") {
-                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
+                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran)!;
                 delete mapped.tahun_ajaran;
               }
               if (key === "sppTarif") {
-                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId);
+                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId)!;
               }
               if (key === "siswa") {
                 delete mapped.status;
               }
-              const { error } = await supabase.from(tableName).insert([mapped]);
+              const { error } = await supabase.from(tableName as any).insert([mapped]);
               if (error) {
                 console.error(`Error inserting to ${tableName}:`, error);
                 toast.error(`Gagal menyimpan ke tabel ${tableName}: ${error.message}`);
+                rollback();
+                return;
               }
             }
 
@@ -263,34 +283,39 @@ export const useDB = create<Store>()(
             for (const item of updated) {
               const mapped = camelToSnake(item);
               if (key === "kelas") {
-                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran);
+                mapped.tahun_ajaran_id = toUuid("ta-" + item.tahunAjaran)!;
                 delete mapped.tahun_ajaran;
               }
               if (key === "sppTarif") {
-                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId);
+                mapped.tahun_ajaran_id = toUuid(item.tahunAjaranId)!;
               }
               if (key === "siswa") {
                 delete mapped.status;
               }
-              const { error } = await supabase.from(tableName).update(mapped).eq("id", toUuid(item.id));
+              const { error } = await supabase.from(tableName as any).update(mapped).eq("id", toUuid(item.id)!);
               if (error) {
                 console.error(`Error updating in ${tableName}:`, error);
                 toast.error(`Gagal memperbarui tabel ${tableName}: ${error.message}`);
+                rollback();
+                return;
               }
             }
 
             // 3. Detect Deletions
             const deleted = oldItems.filter((item) => !newItems.some((n) => n.id === item.id));
             for (const item of deleted) {
-              const { error } = await supabase.from(tableName).delete().eq("id", toUuid(item.id));
+              const { error } = await supabase.from(tableName as any).delete().eq("id", toUuid(item.id)!);
               if (error) {
                 console.error(`Error deleting from ${tableName}:`, error);
                 toast.error(`Gagal menghapus dari tabel ${tableName}: ${error.message}`);
+                rollback();
+                return;
               }
             }
           } catch (e) {
             console.error(`Sync error on patch ${key}:`, e);
             toast.error(`Gagal sinkronisasi data: ${e instanceof Error ? e.message : e}`);
+            rollback();
           }
         })();
       },
@@ -438,6 +463,7 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     { data: audit },
     { data: tahunAjaran },
     { data: sppTarif },
+    { data: materi },
   ] = await Promise.all([
     supabase.from("profiles").select("*"),
     supabase.from("user_roles").select("*"),
@@ -451,12 +477,13 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     supabase.from("mood").select("*"),
     supabase.from("perilaku").select("*"),
     supabase.from("invoice").select("*"),
-    supabase.from("notifikasi").select("*"),
+    supabase.from("notifikasi").select("*").order("tanggal", { ascending: false }).limit(50),
     supabase.from("pengumuman").select("*"),
     supabase.from("catatan_guru").select("*"),
-    supabase.from("audit_log").select("*"),
+    supabase.from("audit_log").select("*").order("tanggal", { ascending: false }).limit(50),
     supabase.from("tahun_ajaran").select("*"),
     supabase.from("spp_tarif").select("*"),
+    supabase.from("materi" as any).select("*"),
   ]);
 
   // Map profiles and roles to users
@@ -479,13 +506,13 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     users,
     siswa: (siswa || []).map((s) => ({
       ...snakeToCamel(s),
-      status: s.status || "aktif",
+      status: (s as any).status || "aktif",
     })),
     kelas: (kelas || []).map((c) => ({
       id: c.id,
       nama: c.nama,
       tingkat: c.tingkat,
-      waliKelasId: c.wali_kelas_id,
+      waliKelasId: c.wali_kelas_id || "",
       tahunAjaran: c.tahun_ajaran?.nama || "2025/2026",
     })),
     mapel: snakeToCamel(mapel || []),
@@ -502,6 +529,7 @@ export async function loadAllFromSupabase(realUserId: string, realUserEmail: str
     audit: snakeToCamel(audit || []),
     tahunAjaran: snakeToCamel(tahunAjaran || []),
     sppTarif: snakeToCamel(sppTarif || []),
+    materi: snakeToCamel(materi || []),
   });
 
   console.log("[Supabase] Zustand store successfully hydrated from database.");

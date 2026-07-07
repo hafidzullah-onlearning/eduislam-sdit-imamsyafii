@@ -41,6 +41,61 @@ export type Database = {
         }
         Relationships: []
       }
+      materi: {
+        Row: {
+          id: string
+          judul: string
+          deskripsi: string | null
+          link_url: string | null
+          kelas_id: string
+          mapel_id: string | null
+          guru_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          judul: string
+          deskripsi?: string | null
+          link_url?: string | null
+          kelas_id: string
+          mapel_id?: string | null
+          guru_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          judul?: string
+          deskripsi?: string | null
+          link_url?: string | null
+          kelas_id?: string
+          mapel_id?: string | null
+          guru_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materi_kelas_id_fkey"
+            columns: ["kelas_id"]
+            isOneToOne: false
+            referencedRelation: "kelas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materi_mapel_id_fkey"
+            columns: ["mapel_id"]
+            isOneToOne: false
+            referencedRelation: "mapel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materi_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       catatan_guru: {
         Row: {
           created_at: string

@@ -33,9 +33,8 @@ function getGeminiApiKey() {
 }
 
 // Server function for generating class progress recommendations via Gemini AI
-export const generateLaporanSaran = createServerFn(
-  "POST",
-  async (data: {
+export const generateLaporanSaran = createServerFn({ method: "POST" })
+  .validator((data: {
     jumlahSiswa: number;
     rataNilai: number;
     diBawahKkm: number;
@@ -50,7 +49,8 @@ export const generateLaporanSaran = createServerFn(
     moodBosan: number;
     moodSedih: number;
     moodMarah: number;
-  }) => {
+  }) => data)
+  .handler(async ({ data }) => {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured on the server");
@@ -102,8 +102,7 @@ Gunakan bahasa Indonesia yang santun, hangat, bernuansa Islami (menggunakan sala
     }
 
     return { text: generatedText };
-  }
-);
+  });
 
 // High-quality local rule-based fallback generator
 const generateLocalLaporanSaran = (data: {

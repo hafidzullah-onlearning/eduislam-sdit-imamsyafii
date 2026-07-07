@@ -178,3 +178,14 @@ export interface SppTarif {
   tahunAjaranId: string;
 }
 
+export interface Materi {
+  id: string;
+  judul: string;
+  deskripsi: string;
+  linkUrl: string;
+  kelasId: string;
+  mapelId: string;
+  guruId: string;
+  createdAt: string;
+}
+
